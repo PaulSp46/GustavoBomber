@@ -1,22 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MapRest</title>
+    <title>MapRest Multiplayer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="selection-screen">
-        <h1>Scegli il tuo ruolo</h1>
-        <div class="role-option" id="constructor">
-            <h2>Costruttore</h2>
+    <div id="role-selection">
+        <h1>Selezione Ruoli</h1>
+        <div id="player-choice-screen" style="display:none;">
+            <h2>Giocatore <span id="current-player-choosing">1</span>, scegli il tuo ruolo:</h2>
+            <div class="role-options-container">
+                <div class="role-option" data-role="constructor">
+                    <h3>Costruttore</h3>
+                    <p>Puoi costruire muri e difese</p>
+                </div>
+                <div class="role-option" data-role="bomber">
+                    <h3>Bombardiere</h3>
+                    <p>Puoi piazzare bombe e attaccare</p>
+                </div>
+            </div>
         </div>
-        <div class="role-option" id="bomber">
-            <h2>Bombardiere</h2>
+        <div id="role-selection-complete" style="display:none;">
+            <h2>Tutti i ruoli sono stati assegnati!</h2>
+            <button id="start-game">Inizia Gioco</button>
         </div>
     </div>
 
     <div id="contentbox" style="display:none;">    
         <div id="mapcontent"></div>
+        <div id="turn-indicator">
+            <h3>Turno del Giocatore <span id="current-player">1</span></h3>
+        </div>
+    </div>
+
+    <div id="victory-screen" style="display:none;">
+        <h1>VITTORIA!</h1>
+        <p id="victory-message">Il Team <span id="winning-team"></span> ha vinto!</p>
+        <button onclick="location.reload()">Rigioca</button>
     </div>
 
     <script src="script.js"></script>
