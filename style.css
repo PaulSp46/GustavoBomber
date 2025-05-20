@@ -1,0 +1,12 @@
+.cella {
+    padding: 5px;
+    border: 1px solid rgb(0, 204, 0);
+    margin: 5px;
+    padding: 20px;  
+    background-color: rgb(0, 204, 0);
+}
+
+#contentbox{
+    display: flex;
+    justify-content: center;
+}
