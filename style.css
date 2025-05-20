@@ -14,3 +14,102 @@
 .flag-cell{
     background-color: red;
 }
+
+.rock-cell {
+    background-color: grey;
+    border: 1px solid darkgrey;
+}
+
+.player-cell {
+    background-color: black !important;
+    position: relative;
+}
+
+.player-cell::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+    background-color: darkblue;
+    border-radius: 3px;
+}
+/* Aggiungi queste regole CSS */
+#selection-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+.role-option {
+    width: 200px;
+    height: 100px;
+    margin: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.role-option:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+#constructor {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#bomber {
+    background-color: #2196F3;
+    color: white;
+}
+
+/* Modifica la classe player-cell */
+.player-cell.bomber::after {
+    background-color: red !important;
+}
+
+.player-with-flag {
+    box-shadow: 0 0 0 3px red;
+}
+
+#victory-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 2em;
+    z-index: 100;
+}
+
+#victory-screen button {
+    padding: 15px 30px;
+    font-size: 1em;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+#victory-screen button:hover {
+    background: #45a049;
+}

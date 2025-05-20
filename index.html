@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
-	<title>MapRest</title>
-	<link rel="stylesheet" href="style.css">
+    <title>MapRest</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div id="selection-screen">
+        <h1>Scegli il tuo ruolo</h1>
+        <div class="role-option" id="constructor">
+            <h2>Costruttore</h2>
+        </div>
+        <div class="role-option" id="bomber">
+            <h2>Bombardiere</h2>
+        </div>
+    </div>
 
-	<div id="contentbox">	
-		<div id="mapcontent">
-			
-		</div>
-	</div>
+    <div id="contentbox" style="display:none;">    
+        <div id="mapcontent"></div>
+    </div>
 
+    <script src="script.js"></script>
 </body>
-<script src="script.js"></script>
 </html>
