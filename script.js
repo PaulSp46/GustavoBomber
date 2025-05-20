@@ -3,7 +3,6 @@ var ROWS = 16;
 var COLS = 29;
 var tbl;
 makeMap("mapcontent", ROWS, COLS);
-placeAvatar(10, 20, "SG");
 
 function makeMap(placeholder, rows, cols) {
     tbl = document.createElement("table");
@@ -12,6 +11,16 @@ function makeMap(placeholder, rows, cols) {
         for (let j = 0; j < cols; j++) {
             let td = document.createElement("td");
             td.setAttribute("class", "cella");
+
+            if ((i == 0 || i == 15) && j == 14) {
+                let tempclass = td.className;
+                td.className = tempclass + " flag-cell";
+            }
+
+            if (condition) {
+                
+            }
+
             tr.appendChild(td);
         }
         tbl.appendChild(tr);
@@ -26,7 +35,7 @@ function placeAvatar(row, col, val) {
     let cell = tbl.rows[row].cells[col];
     if (cell.hasChildNodes()) {
         cell.removeChild(cell.firstChild);
-        //todo: color cell
     }
+    
     tbl.rows[row].cells[col].appendChild(document.createTextNode(val));
 }
