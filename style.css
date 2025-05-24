@@ -394,3 +394,148 @@ table {
 .role-option[data-role="bomber"] {
     background-color: #f44336;
 }
+
+.building-mode {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+#construction-controls {
+    margin-top: 20px;
+    padding: 10px;
+    background: #333;
+    color: white;
+    border-radius: 5px;
+}
+
+#build-wall-btn {
+    padding: 8px 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#build-wall-btn:hover {
+    background: #45a049;
+}
+
+.cella.buildable {
+    background-color: rgba(255, 255, 0, 0.3) !important;
+    cursor: pointer;
+}
+
+.cella.buildable:hover {
+    background-color: rgba(255, 255, 0, 0.5) !important;
+}
+
+.bomb-cell {
+    background-color: red !important;
+    border: 3px solid orange !important;
+    animation: bomb-pulse 1s infinite;
+}
+
+@keyframes bomb-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.bomb-controls {
+    margin-top: 20px;
+    padding: 10px;
+    background: #333;
+    color: white;
+    border-radius: 5px;
+}
+
+#place-bomb-btn {
+    padding: 8px 16px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#place-bomb-btn:hover {
+    background: #d32f2f;
+}
+
+.cella.bomb-target {
+    background-color: rgba(255, 0, 0, 0.3) !important;
+    cursor: crosshair;
+}
+
+.cella.bomb-target:hover {
+    background-color: rgba(255, 0, 0, 0.5) !important;
+}
+
+.explosion-warning {
+    background-color: rgba(255, 165, 0, 0.7) !important;
+    animation: explosion-warning 0.5s infinite alternate;
+}
+
+@keyframes explosion-warning {
+    0% { background-color: rgba(255, 165, 0, 0.7); }
+    100% { background-color: rgba(255, 69, 0, 0.7); }
+}
+
+.dead-player {
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
+.dead-player::after {
+    content: "💀" !important;
+    background-color: black !important;
+}
+
+/* Stili per le bombe */
+.bomb-cell {
+    background-color: red !important;
+    border: 3px solid orange !important;
+    animation: bomb-pulse 1s infinite;
+}
+
+@keyframes bomb-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Stili per l'avvertimento di esplosione */
+.explosion-warning {
+    background-color: rgba(255, 165, 0, 0.7) !important;
+    animation: explosion-warning 0.5s infinite alternate;
+}
+
+@keyframes explosion-warning {
+    0% { background-color: rgba(255, 165, 0, 0.7); }
+    100% { background-color: rgba(255, 69, 0, 0.7); }
+}
+
+/* Stili per le celle selezionabili */
+.buildable {
+    background-color: rgba(255, 255, 0, 0.3) !important;
+    cursor: pointer;
+}
+
+.buildable:hover {
+    background-color: rgba(255, 255, 0, 0.5) !important;
+}
+
+.bomb-target {
+    background-color: rgba(255, 0, 0, 0.3) !important;
+    cursor: crosshair;
+}
+
+.bomb-target:hover {
+    background-color: rgba(255, 0, 0, 0.5) !important;
+}
