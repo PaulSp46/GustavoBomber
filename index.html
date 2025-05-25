@@ -269,7 +269,9 @@
                         name: myUsername,
                         joinedAt: Date.now(),
                         ready: true,
-                        isHost: isNewRoom // Primo giocatore è host
+                        isHost: isNewRoom, // Primo giocatore è host
+                        team: null,       // Team sarà scelto nella preparazione
+                        role: null        // Ruolo sarà scelto nella preparazione
                     });
 
                     log('✅ Giocatore registrato con successo', 'success');
@@ -283,6 +285,12 @@
                         const data = snapshot.val();
                         if (data) {
                             updateRoom(data);
+                            
+                            // Se il gioco è stato avviato, vai alla preparazione
+                            if (data.gameStarted && data.gamePhase === 'preparation') {
+                                log('🎮 Gioco avviato, andando alla preparazione...', 'success');
+                                window.location.href = `preparation/preparation.php?roomCode=${roomCode}&playerId=${myPlayerId}&username=${myUsername}`;
+                            }
                         } else {
                             log('⚠️ Stanza vuota o non esistente', 'warning');
                         }
@@ -373,6 +381,7 @@
             location.reload();
         }
 
+        // MODIFICA PRINCIPALE: Ora vai alla preparazione invece che direttamente al gioco
         window.startGame = function() {
             if (!currentRoom || !database) return;
             
@@ -381,14 +390,14 @@
                     gameStarted: true,
                     startedAt: Date.now(),
                     startedBy: myPlayerId,
-                    gamePhase: 'role-selection'
+                    gamePhase: 'preparation'  // Fase di preparazione invece di 'role-selection'
                 });
                 
-                log('🎮 Gioco avviato!', 'success');
-                // Redirect alla pagina di gioco
-                window.location.href = `game/board.php?roomCode=${currentRoom}`;
+                log('🎮 Avviando fase di preparazione...', 'success');
+                // Redirect alla pagina di preparazione
+                window.location.href = `preparation/preparation.php?roomCode=${currentRoom}&playerId=${myPlayerId}&username=${myUsername}`;
             } catch (error) {
-                log(`❌ Errore avviando gioco: ${error.message}`, 'error');
+                log(`❌ Errore avviando preparazione: ${error.message}`, 'error');
             }
         }
 
