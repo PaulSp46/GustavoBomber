@@ -1,50 +1,404 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MapRest Multiplayer</title>
+    <title>MapRest Multiplayer - Long Polling</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="role-selection">
-        <h1>Selezione Ruoli</h1>
-        <div id="player-choice-screen" style="display:none;">
-            <h2>Giocatore <span id="current-player-choosing">1</span>, scegli il tuo ruolo:</h2>
-            <div class="role-options-container">
-                <div class="role-option" data-role="constructor">
-                    <h3>Costruttore</h3>
-                    <p>Puoi costruire muri e difese</p>
+    <div class="container">
+        <h1>Gustavo Bombing</h1>
+        
+        <!-- Insegna del Saloon -->
+        <div class="saloon-sign">
+            <div class="saloon-banner">🍺 SALOON 🍺</div>
+        </div>
+        
+        <!-- Schermata Lobby -->
+        <div id="lobby-screen">
+            <div id="status" class="status loading">
+                🔄 Inizializzando connessione...
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <!-- Campo Nome Utente -->
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="username" class="room-input" placeholder="Il tuo nome" maxlength="20" 
+                           style="width: 250px; margin-right: 0; margin-bottom: 10px;">
+                    <div id="username-status" style="font-size: 0.9em; margin-top: 5px; height: 20px;"></div>
                 </div>
-                <div class="role-option" data-role="bomber">
-                    <h3>Bombardiere</h3>
-                    <p>Puoi piazzare bombe e attaccare</p>
+                
+                <!-- Codice Stanza -->
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="room-code" class="room-input" placeholder="Codice stanza" maxlength="10">
+                    <button onclick="joinRoom()" id="join-btn" disabled>Entra in Stanza</button>
                 </div>
+                
+                <p>oppure</p>
+                <button onclick="createRoom()" id="create-btn" style="font-size: 1.2em; padding: 15px 30px;" disabled>
+                    Crea Nuova Stanza
+                </button>
             </div>
         </div>
-        <div id="role-selection-complete" style="display:none;">
-            <h2>Tutti i ruoli sono stati assegnati!</h2>
-            <button id="start-game">Inizia Gioco</button>
+
+        <!-- Schermata Attesa -->
+        <div id="waiting-screen" style="display:none;">
+            <h2>Stanza: <span id="current-room-code" style="color: #007bff;"></span></h2>
+            
+            <div class="players-list">
+                <h3>Giocatori Connessi (  <span id="player-count">0</span>  /4):</h3>
+                <div id="players-list"></div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button id="start-game-btn" onclick="startGame()" disabled>🎮 Inizia Gioco</button>
+                <button onclick="leaveRoom()" class="exit-btn">🚪 Esci</button>
+            </div>
         </div>
     </div>
 
-    <div id="contentbox" style="display:none;">    
-        <div id="mapcontent"></div>
-        <div id="turn-indicator">
-            <h3>Turno del Giocatore <span id="current-player">1</span></h3>
-        </div>
-        <div id="construction-controls" style="display:none;">
-            <button id="build-wall-btn">🧱</button>
-        </div>
-        <div id="bomb-controls" style="display:none;">
-            <button id="place-bomb-btn">💣</button>
-        </div>
-    </div>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, set, onValue, update, onDisconnect, serverTimestamp, get } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
 
-    <div id="victory-screen" style="display:none;">
-        <h1>VITTORIA!</h1>
-        <p id="victory-message">Il Team <span id="winning-team"></span> ha vinto!</p>
-        <button onclick="location.reload()">Rigioca</button>
-    </div>
+        // Configurazione Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAaFw4nAcPcFrrZACMcLoVc-0rPybpwyYU",
+            authDomain: "maprace-68ba8.firebaseapp.com",
+            databaseURL: "https://maprace-68ba8-default-rtdb.europe-west1.firebasedatabase.app/",
+            projectId: "maprace-68ba8",
+            storageBucket: "maprace-68ba8.firebasestorage.app",
+            messagingSenderId: "554782611402",
+            appId: "1:554782611402:web:d70f20cfe3d2cff640e133"
+        };
 
-    <script src="script.js"></script>
+        const statusEl = document.getElementById('status');
+        const usernameEl = document.getElementById('username');
+        const usernameStatusEl = document.getElementById('username-status');
+        const joinBtn = document.getElementById('join-btn');
+        const createBtn = document.getElementById('create-btn');
+        
+        let app, database;
+        let currentRoom = null;
+        let myPlayerId = null;
+        let myUsername = '';
+
+        function log(message, type = 'info') {
+            const colors = { error: 'red', success: 'green', warning: 'orange' };
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        // ========== GESTIONE NOME UTENTE ==========
+        function validateUsername(username) {
+            // Rimuovi spazi e caratteri speciali
+            username = username.trim().replace(/[^a-zA-Z0-9À-ÿ_-]/g, '');
+            
+            if (username.length < 2) {
+                return { valid: false, error: 'Nome troppo corto (min 2 caratteri)' };
+            }
+            
+            if (username.length > 20) {
+                return { valid: false, error: 'Nome troppo lungo (max 20 caratteri)' };
+            }
+            
+            return { valid: true, username: username };
+        }
+
+        function updateUsernameStatus(message, type = 'info') {
+            const colors = { error: '#ff4444', success: '#44ff44', warning: '#ffaa44', info: '#4488ff' };
+            usernameStatusEl.textContent = message;
+            usernameStatusEl.style.color = colors[type] || '#666';
+        }
+
+        function checkButtonsEnabled() {
+            const hasValidUsername = myUsername && myUsername.length >= 2;
+            joinBtn.disabled = !hasValidUsername;
+            createBtn.disabled = !hasValidUsername;
+            
+            if (hasValidUsername) {
+                updateUsernameStatus(`✅ Nome valido: "${myUsername}"`, 'success');
+            }
+        }
+
+        // Event listener per il campo username
+        usernameEl.addEventListener('input', function() {
+            const rawUsername = this.value;
+            const validation = validateUsername(rawUsername);
+            
+            if (!validation.valid) {
+                updateUsernameStatus(validation.error, 'error');
+                myUsername = '';
+                checkButtonsEnabled();
+                return;
+            }
+            
+            myUsername = validation.username;
+            this.value = myUsername; // Aggiorna il campo con il nome "pulito"
+            
+            updateUsernameStatus(`Controllo disponibilità...`, 'info');
+            checkButtonsEnabled();
+        });
+
+        // Numero di player in una stanza
+        async function getPlayerCount(roomCode) {
+            try {
+                const response = await get(ref(database, `games/${roomCode}/players`));
+                
+                if (response.exists()) {
+                    const players = response.val();
+                    return Object.keys(players).length;
+                } else {
+                    return 0; // Stanza vuota o non esistente
+                }
+            } catch (error) {
+                log(`Errore conteggio giocatori: ${error}`, "error");
+                return -1; // Errore
+            }
+        }
+
+        async function isUsernameAvailable(roomCode, username) {
+            if (!database || !roomCode || !username) return false;
+            
+            try {
+                const playersRef = ref(database, `games/${roomCode}/players`);
+                const snapshot = await get(playersRef);
+                const players = snapshot.val() || {};
+                
+                // Controlla se il nome è già usato (case-insensitive)
+                const existingNames = Object.values(players).map(p => p.name?.toLowerCase());
+                return !existingNames.includes(username.toLowerCase());
+            } catch (error) {
+                log(`❌ Errore controllo nome: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // ========== FIREBASE INIT ==========
+        async function initFirebase() {
+            try {
+                log('🔧 Inizializzando Firebase...');
+                app = initializeApp(firebaseConfig);
+                
+                database = getDatabase(app);
+                
+                log('✅ Firebase inizializzato con Long Polling', 'success');
+                
+                if (statusEl) {
+                    statusEl.textContent = '✅ Connesso';
+                    statusEl.className = 'status success';
+                }
+                
+                return true;
+            } catch (error) {
+                log(`❌ Errore inizializzazione: ${error.message}`, 'error');
+                
+                if (statusEl) {
+                    statusEl.textContent = '❌ Errore Connessione';
+                    statusEl.className = 'status error';
+                }
+                return false;
+            }
+        }
+
+        // ========== FUNZIONI LOBBY ==========
+        window.createRoom = async function() {
+            if (!myUsername) {
+                alert('Inserisci un nome utente valido');
+                usernameEl.focus();
+                return;
+            }
+            
+            log('🎯 Creando nuova stanza...');
+            const roomCode = Math.random().toString(36).substr(2, 6).toUpperCase();
+            log(`🆔 Codice generato: ${roomCode}`);
+            
+            // Non serve controllare il nome per una stanza nuova
+            await joinRoom(roomCode, true);
+        }
+
+        window.joinRoom = async function(roomCode, isNewRoom = false) {
+            if (!roomCode) {
+                roomCode = document.getElementById('room-code').value.trim().toUpperCase();
+            }
+            
+            if (!roomCode || roomCode.length < 3) {
+                alert('Inserisci un codice stanza valido (almeno 3 caratteri)');
+                return;
+            }
+
+            if (!myUsername) {
+                alert('Inserisci un nome utente valido');
+                usernameEl.focus();
+                return;
+            }
+
+            if (!database) {
+                alert('Connessione Firebase non pronta. Riprova tra un momento.');
+                return;
+            }
+
+            // Controlla disponibilità nome (solo per stanze esistenti)
+            if (!isNewRoom) {
+                updateUsernameStatus('Controllo disponibilità nome...', 'info');
+                const isAvailable = await isUsernameAvailable(roomCode, myUsername);
+                
+                if (!isAvailable) {
+                    updateUsernameStatus(`❌ Nome "${myUsername}" già in uso in questa stanza`, 'error');
+                    alert(`Il nome "${myUsername}" è già in uso in questa stanza. Scegli un nome diverso.`);
+                    usernameEl.focus();
+                    usernameEl.select();
+                    return;
+                }
+            }
+
+            currentRoom = roomCode;
+            myPlayerId = 'player_' + Math.random().toString(36).substr(2, 8);
+
+            log(`🚪 Tentativo ingresso stanza: ${roomCode}`);
+            log(`👤 Nome giocatore: ${myUsername}`);
+            log(`🆔 ID giocatore: ${myPlayerId}`);   
+
+            if (await getPlayerCount(roomCode) < 4){
+                try {
+                    // Registra giocatore con nome scelto
+                    const playerRef = ref(database, `games/${roomCode}/players/${myPlayerId}`);
+                    await set(playerRef, {
+                        id: myPlayerId,
+                        name: myUsername,
+                        joinedAt: Date.now(),
+                        ready: true,
+                        isHost: isNewRoom // Primo giocatore è host
+                    });
+
+                    log('✅ Giocatore registrato con successo', 'success');
+
+                    // Cleanup alla disconnessione
+                    onDisconnect(playerRef).remove();
+
+                    // Ascolta aggiornamenti stanza
+                    const roomRef = ref(database, `games/${roomCode}`);
+                    onValue(roomRef, (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            updateRoom(data);
+                        } else {
+                            log('⚠️ Stanza vuota o non esistente', 'warning');
+                        }
+                    }, (error) => {
+                        log(`❌ Errore listener stanza: ${error.message}`, 'error');
+                    });
+
+                    // Mostra schermata attesa
+                    const lobbyScreen = document.getElementById('lobby-screen');
+                    const waitingScreen = document.getElementById('waiting-screen');
+                    const roomCodeEl = document.getElementById('current-room-code');
+
+                    if (lobbyScreen) lobbyScreen.style.display = 'none';
+                    if (waitingScreen) waitingScreen.style.display = 'block';
+                    if (roomCodeEl) roomCodeEl.textContent = roomCode;
+                    
+                    log(`✅ Entrato nella stanza: ${roomCode} come ${myUsername}`, 'success');
+
+                } catch (error) {
+                    log(`❌ Errore entrando in stanza: ${error.message}`, 'error');
+                    alert(`Errore entrando nella stanza: ${error.message}`);
+                }
+            } else{
+                alert("Stanza piena")
+            }
+            
+        }
+
+        function updateRoom(data) {
+            const players = data.players || {};
+            const playerCount = Object.keys(players).length;
+            
+            log(`📊 Aggiornamento stanza: ${playerCount} giocatori connessi`);
+            
+            // Aggiorna contatore
+            const playerCountEl = document.getElementById('player-count');
+            if (playerCountEl) {
+                playerCountEl.textContent = playerCount;
+            }
+            
+            // Lista giocatori
+            const listEl = document.getElementById('players-list');
+            if (listEl) {
+                listEl.innerHTML = '';
+                
+                Object.values(players)
+                    .sort((a, b) => a.joinedAt - b.joinedAt) // Ordina per tempo di ingresso
+                    .forEach((player, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'player-item';
+                        
+                        const isMe = player.id === myPlayerId;
+                        const isHost = player.isHost || index === 0; // Primo giocatore è sempre host
+                        
+                        if (isMe) {
+                            div.classList.add('current-player');
+                        }
+                        
+                        div.innerHTML = `
+                            <strong>${player.name}</strong>
+                            ${isHost ? '<span style="color: #ffa500; margin-left: 8px;">👑 HOST</span>' : ''}
+                            ${isMe ? '<span style="color: #00ff00; margin-left: 8px;">(Tu)</span>' : ''}
+                            <small style="color: #666; display: block; margin-top: 3px;">
+                                Entrato: ${new Date(player.joinedAt).toLocaleTimeString()}
+                            </small>
+                        `;
+                        
+                        listEl.appendChild(div);
+                    });
+            }
+
+            // Abilita/disabilita pulsante start (solo per host)
+            const startBtn = document.getElementById('start-game-btn');
+            const myPlayer = Object.values(players).find(p => p.id === myPlayerId);
+            const canStart = myPlayer && (myPlayer.isHost || Object.keys(players)[0] === myPlayerId);
+            
+            if (startBtn) {
+                startBtn.disabled = playerCount < 2 || !canStart;
+                startBtn.textContent = canStart ? '🎮 Inizia Gioco' : '⏳ Aspetta l\'Host';
+            }
+        }
+
+        window.leaveRoom = function() {
+            if (currentRoom && myPlayerId && database) {
+                const playerRef = ref(database, `games/${currentRoom}/players/${myPlayerId}`);
+                set(playerRef, null);
+            }
+            location.reload();
+        }
+
+        window.startGame = function() {
+            if (!currentRoom || !database) return;
+            
+            try {
+                update(ref(database, `games/${currentRoom}`), {
+                    gameStarted: true,
+                    startedAt: Date.now(),
+                    startedBy: myPlayerId,
+                    gamePhase: 'role-selection' // Prossimo step: selezione ruoli
+                });
+                
+                log('🎮 Gioco avviato!', 'success');
+                alert('Gioco avviato! (Prossimo step: selezione ruoli)');
+            } catch (error) {
+                log(`❌ Errore avviando gioco: ${error.message}`, 'error');
+            }
+        }
+
+        // ========== INIT ==========
+        initFirebase();
+        
+        // Focus sul campo username all'avvio
+        setTimeout(() => {
+            if (usernameEl) {
+                usernameEl.focus();
+                updateUsernameStatus('Inserisci il tuo nome (2-20 caratteri)', 'info');
+            }
+        }, 1000);
+    </script>
 </body>
 </html>
