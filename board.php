@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapRest Multiplayer</title>
+    <link rel="stylesheet" href="boardStyle.css">
+</head>
+<body>
+    <div id="role-selection">
+        <h1>Selezione Ruoli</h1>
+        <div id="player-choice-screen" style="display:none;">
+            <h2>Giocatore <span id="current-player-choosing">1</span>, scegli il tuo ruolo:</h2>
+            <div class="role-options-container">
+                <div class="role-option" data-role="constructor">
+                    <h3>Costruttore</h3>
+                    <p>Puoi costruire muri e difese</p>
+                </div>
+                <div class="role-option" data-role="bomber">
+                    <h3>Bombardiere</h3>
+                    <p>Puoi piazzare bombe e attaccare</p>
+                </div>
+            </div>
+        </div>
+        <div id="role-selection-complete" style="display:none;">
+            <h2>Tutti i ruoli sono stati assegnati!</h2>
+            <button id="start-game">Inizia Gioco</button>
+        </div>
+    </div>
+
+    <div id="contentbox" style="display:none;">    
+        <div id="mapcontent"></div>
+        <div id="turn-indicator">
+            <h3>Turno del Giocatore <span id="current-player">1</span></h3>
+        </div>
+        <div id="control-box">
+            <div id="construction-controls" style="display:none;">
+                <button id="build-wall-btn">🧱</button>
+            </div>
+            <div id="bomb-controls" style="display:none;">
+                <button id="place-bomb-btn">💣</button>
+            </div>
+            <div id="knife-controls">
+                <button id="use-knife-btn">🔪</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="victory-screen" style="display:none;">
+        <h1>VITTORIA!</h1>
+        <p id="victory-message">Il Team <span id="winning-team"></span> ha vinto!</p>
+        <button onclick="location.reload()">Rigioca</button>
+    </div>
+
+    <script src="boardScript.js"></script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MapRest Multiplayer - Long Polling</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -90,8 +92,8 @@
 
         // ========== GESTIONE NOME UTENTE ==========
         function validateUsername(username) {
-            // Rimuovi spazi e caratteri speciali
-            username = username.trim().replace(/[^a-zA-Z0-9À-ÿ_-]/g, '');
+            // Rimuovi spazi e caratteri speciali (trattino spostato alla fine)
+            username = username.trim().replace(/[^a-zA-Z0-9À-ÿ-_]/g, '');
             
             if (username.length < 2) {
                 return { valid: false, error: 'Nome troppo corto (min 2 caratteri)' };
@@ -379,11 +381,12 @@
                     gameStarted: true,
                     startedAt: Date.now(),
                     startedBy: myPlayerId,
-                    gamePhase: 'role-selection' // Prossimo step: selezione ruoli
+                    gamePhase: 'role-selection'
                 });
                 
                 log('🎮 Gioco avviato!', 'success');
-                alert('Gioco avviato! (Prossimo step: selezione ruoli)');
+                // Redirect alla pagina di gioco
+                window.location.href = `game/board.php?roomCode=${currentRoom}`;
             } catch (error) {
                 log(`❌ Errore avviando gioco: ${error.message}`, 'error');
             }
