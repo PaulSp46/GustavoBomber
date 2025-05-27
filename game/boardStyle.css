@@ -1,0 +1,1821 @@
+/* ==========================================
+   STILI GENERALI E LAYOUT - TEMA WESTERN/SALOON
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: 
+        radial-gradient(ellipse at top left, rgba(139, 69, 19, 0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom right, rgba(101, 67, 33, 0.3) 0%, transparent 60%),
+        linear-gradient(135deg, #2d1810 0%, #3d2414 20%, #4a2c17 40%, #5d3a1f 60%, #3d2414 80%, #2d1810 100%);
+    background-size: 400% 400%;
+    background-attachment: fixed;
+    color: #f5deb3;
+    min-height: 100vh;
+    position: relative;
+    animation: saloonLighting 10s ease-in-out infinite;
+    margin: 0;
+    padding: 20px;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Texture tavole del saloon */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 80px,
+            rgba(139, 69, 19, 0.1) 80px,
+            rgba(139, 69, 19, 0.1) 84px,
+            rgba(101, 67, 33, 0.1) 84px,
+            rgba(101, 67, 33, 0.1) 88px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 4px,
+            rgba(139, 69, 19, 0.05) 4px,
+            rgba(139, 69, 19, 0.05) 8px
+        );
+    pointer-events: none;
+    z-index: -3;
+    opacity: 0.8;
+}
+
+/* Effetto fumo e polvere del saloon */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(3px 3px at 50px 80px, rgba(245, 222, 179, 0.2), transparent),
+        radial-gradient(2px 2px at 150px 120px, rgba(210, 180, 140, 0.15), transparent),
+        radial-gradient(1px 1px at 250px 60px, rgba(222, 184, 135, 0.1), transparent);
+    background-repeat: repeat;
+    background-size: 300px 200px;
+    animation: saloonSmoke 20s linear infinite;
+    pointer-events: none;
+    z-index: -2;
+}
+
+@keyframes saloonLighting {
+    0%, 100% { 
+        filter: contrast(1) brightness(1);
+        background-position: 0% 50%;
+    }
+    50% { 
+        filter: contrast(1.1) brightness(1.15);
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes saloonSmoke {
+    0% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+    50% { transform: translateY(-10px) translateX(20px); opacity: 0.2; }
+    100% { transform: translateY(-20px) translateX(40px); opacity: 0.1; }
+}
+
+#control-box{
+    display: flex;
+}
+
+#contentbox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: 
+        linear-gradient(145deg, rgba(61, 36, 20, 0.95) 0%, rgba(101, 67, 33, 0.9) 30%, rgba(139, 69, 19, 0.8) 70%, rgba(61, 36, 20, 0.95) 100%);
+    border: 6px solid #654321;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 4;
+    margin: 20px auto;
+    max-width: 95vw;
+    box-sizing: border-box;
+}
+
+#contentbox::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    background: 
+        linear-gradient(45deg, #8b4513, #a0522d, #654321, #8b4513, #a0522d);
+    border-radius: 21px;
+    z-index: -1;
+}
+
+/* Barra del saloon */
+#contentbox::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    height: 8px;
+    background: 
+        linear-gradient(90deg, #654321 0%, #8b4513 20%, #a0522d 40%, #cd853f 50%, #a0522d 60%, #8b4513 80%, #654321 100%);
+    border-radius: 4px;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================
+   SELEZIONE RUOLI - STILE SALOON
+   ========================================== */
+
+#role-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 90vh;
+    background: 
+        linear-gradient(145deg, rgba(61, 36, 20, 0.95) 0%, rgba(101, 67, 33, 0.9) 30%, rgba(139, 69, 19, 0.8) 70%, rgba(61, 36, 20, 0.95) 100%);
+    border: 6px solid #654321;
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+    max-width: 95vw;
+    position: relative;
+    z-index: 4;
+    margin: 20px auto;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#role-selection::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    background: 
+        linear-gradient(45deg, #8b4513, #a0522d, #654321, #8b4513, #a0522d);
+    border-radius: 21px;
+    z-index: -1;
+}
+
+#role-selection h1 {
+    color: #daa520;
+    margin-bottom: 30px;
+    font-size: 3.5em;
+    text-shadow: 
+        2px 2px 0px #8b4513,
+        4px 4px 0px #654321,
+        6px 6px 0px #3d2414,
+        8px 8px 20px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    animation: saloonSign 5s ease-in-out infinite;
+}
+
+#role-selection h1::before {
+    content: '🤠';
+    position: absolute;
+    top: -20px;
+    left: 10%;
+    font-size: 1.2rem;
+    animation: chainSway 4s ease-in-out infinite;
+}
+
+#role-selection h1::after {
+    content: '🤠';
+    position: absolute;
+    top: -20px;
+    right: 10%;
+    font-size: 1.2rem;
+    animation: chainSway 4s ease-in-out infinite reverse;
+}
+
+@keyframes saloonSign {
+    0%, 100% { 
+        transform: rotate(0deg);
+        text-shadow: 
+            2px 2px 0px #8b4513,
+            4px 4px 0px #654321,
+            6px 6px 0px #3d2414,
+            8px 8px 20px rgba(0, 0, 0, 0.8);
+    }
+    50% { 
+        transform: rotate(0.3deg);
+        text-shadow: 
+            2px 2px 0px #8b4513,
+            4px 4px 0px #654321,
+            6px 6px 0px #3d2414,
+            8px 8px 25px rgba(0, 0, 0, 0.8),
+            0 0 30px rgba(218, 165, 32, 0.4);
+    }
+}
+
+@keyframes chainSway {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(3deg); }
+}
+
+#role-selection h2 {
+    color: #ffd700;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+#player-choice-screen {
+    text-align: center;
+    padding: 30px;
+    background: rgba(45, 24, 16, 0.9);
+    border: 4px solid #654321;
+    border-radius: 10px;
+    max-width: 700px;
+    margin: 20px auto;
+    box-shadow: 
+        inset 0 4px 8px rgba(0, 0, 0, 0.6),
+        0 8px 16px rgba(0, 0, 0, 0.6);
+}
+
+.role-options-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.role-option {
+    z-index: 1000;
+    padding: 30px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    width: 250px;
+    border: 4px solid #654321;
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    position: relative;
+    background: 
+        linear-gradient(145deg, rgba(139, 69, 19, 0.9) 0%, rgba(101, 67, 33, 0.8) 50%, rgba(61, 36, 20, 0.9) 100%);
+}
+
+.role-option::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(45deg, #8b4513, #a0522d, #654321, #8b4513);
+    border-radius: 16px;
+    z-index: -1;
+}
+
+.role-option:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        0 0 25px rgba(218, 165, 32, 0.4);
+    border-color: #daa520;
+}
+
+.role-option.selected {
+    transform: scale(1.08);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.8),
+        0 0 30px rgba(255, 215, 0, 0.6);
+    border: 4px solid #ffd700 !important;
+}
+
+.role-option[data-role="constructor"] {
+    background: 
+        linear-gradient(145deg, rgba(65, 105, 225, 0.8) 0%, rgba(139, 69, 19, 0.9) 50%, rgba(61, 36, 20, 0.9) 100%);
+}
+
+.role-option[data-role="bomber"] {
+    background: 
+        linear-gradient(145deg, rgba(220, 20, 60, 0.8) 0%, rgba(139, 69, 19, 0.9) 50%, rgba(61, 36, 20, 0.9) 100%);
+}
+
+.role-option h3 {
+    margin-top: 0;
+    color: #f5deb3;
+    font-size: 1.4em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.role-option p {
+    color: #f5deb3;
+    font-size: 1em;
+    margin: 15px 0 0 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+}
+
+#role-selection-complete {
+    text-align: center;
+    margin-top: 30px;
+}
+
+#start-game {
+    padding: 20px 40px;
+    font-size: 1.4em;
+    background: 
+        linear-gradient(145deg, #8b4513 0%, #a0522d 20%, #cd853f 40%, #daa520 50%, #cd853f 60%, #a0522d 80%, #8b4513 100%);
+    color: #f5deb3;
+    border: 4px solid #654321;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-family: 'Georgia', serif;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#start-game:hover {
+    background: 
+        linear-gradient(145deg, #a0522d 0%, #cd853f 20%, #daa520 40%, #ffd700 50%, #daa520 60%, #cd853f 80%, #a0522d 100%);
+    border-color: #daa520;
+    transform: translateY(-4px);
+    box-shadow: 
+        0 12px 24px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+        0 0 30px rgba(218, 165, 32, 0.5);
+    color: #fff;
+}
+
+#start-game:disabled {
+    background: 
+        linear-gradient(145deg, rgba(61, 36, 20, 0.7) 0%, rgba(101, 67, 33, 0.6) 100%);
+    border-color: rgba(101, 67, 33, 0.5);
+    color: rgba(245, 222, 179, 0.4);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================
+   GRIGLIA DI GIOCO - TEMA WESTERN
+   ========================================== */
+
+table {
+    border-collapse: separate;
+    border-spacing: 2px;
+    table-layout: fixed;
+    margin: 20px auto;
+    background: 
+        linear-gradient(145deg, rgba(61, 36, 20, 0.9) 0%, rgba(101, 67, 33, 0.8) 100%);
+    border: 6px solid #654321;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    position: relative;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+table::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    background: 
+        linear-gradient(45deg, #8b4513, #a0522d, #654321, #8b4513, #a0522d);
+    border-radius: 21px;
+    z-index: -1;
+}
+
+.cella {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    min-height: 45px;
+    padding: 10px;
+    border: 2px solid #8b4513;
+    margin: 1px;
+    background: 
+        linear-gradient(145deg, rgba(107, 142, 35, 0.9) 0%, rgba(85, 107, 47, 0.8) 100%);
+    position: relative;
+    box-sizing: border-box;
+    text-align: center;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+    box-shadow: 
+        inset 1px 1px 2px rgba(255, 255, 255, 0.2),
+        inset -1px -1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.cella:hover {
+    background: 
+        linear-gradient(145deg, rgba(124, 158, 47, 0.9) 0%, rgba(107, 142, 35, 0.8) 100%);
+    transform: scale(1.05);
+    box-shadow: 
+        inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+        inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+        0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+/* ==========================================
+   GIOCATORI - Sistema con numeri in stile Western
+   ========================================== */
+
+.player1-cell, .player2-cell, .player3-cell, .player4-cell {
+    background: 
+        linear-gradient(145deg, rgba(61, 36, 20, 0.95) 0%, rgba(45, 24, 16, 0.9) 100%) !important;
+    position: relative;
+    border: 3px solid #8b4513 !important;
+    box-sizing: border-box;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.6),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1) !important;
+}
+
+.player1-cell::after {
+    content: "1";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #f5deb3;
+    font-weight: bold;
+    font-size: 18px;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+}
+
+.player2-cell::after {
+    content: "2";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #f5deb3;
+    font-weight: bold;
+    font-size: 18px;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+}
+
+.player3-cell::after {
+    content: "3";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #f5deb3;
+    font-weight: bold;
+    font-size: 18px;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+}
+
+.player4-cell::after {
+    content: "4";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #f5deb3;
+    font-weight: bold;
+    font-size: 18px;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+}
+
+/* Costruttori (Badge blu scuro) */
+.player1-cell.constructor::after, 
+.player2-cell.constructor::after, 
+.player3-cell.constructor::after, 
+.player4-cell.constructor::after {
+    width: 65%;
+    height: 65%;
+    background: 
+        linear-gradient(145deg, rgba(25, 25, 112, 0.9) 0%, rgba(0, 0, 139, 0.8) 100%);
+    border: 2px solid #4169e1;
+    border-radius: 4px;
+    color: #f5deb3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.6),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Bombardieri (Badge rosso scuro) */
+.player1-cell.bomber::after, 
+.player2-cell.bomber::after, 
+.player3-cell.bomber::after, 
+.player4-cell.bomber::after {
+    width: 65%;
+    height: 65%;
+    background: 
+        linear-gradient(145deg, rgba(139, 0, 0, 0.9) 0%, rgba(128, 0, 0, 0.8) 100%);
+    border: 2px solid #dc143c;
+    border-radius: 4px;
+    color: #f5deb3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.6),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Giocatore attivo (effetto lanterna dorata) */
+.active-player {
+    box-shadow: 
+        0 0 0 4px #daa520,
+        0 0 20px rgba(218, 165, 32, 0.6);
+    z-index: 2;
+    animation: lanternGlow 2s infinite;
+}
+
+@keyframes lanternGlow {
+    0% { 
+        box-shadow: 
+            0 0 0 4px #daa520,
+            0 0 20px rgba(218, 165, 32, 0.6);
+        filter: brightness(1);
+    }
+    50% { 
+        box-shadow: 
+            0 0 0 4px #ffd700,
+            0 0 30px rgba(255, 215, 0, 0.8);
+        filter: brightness(1.2);
+    }
+    100% { 
+        box-shadow: 
+            0 0 0 4px #daa520,
+            0 0 20px rgba(218, 165, 32, 0.6);
+        filter: brightness(1);
+    }
+}
+
+/* Giocatore con bandiera (effetto rosso intenso) */
+.player-with-flag {
+    box-shadow: 
+        0 0 0 4px #dc143c,
+        0 0 25px rgba(220, 20, 60, 0.7);
+    z-index: 2;
+    animation: flagBearer 2s infinite;
+}
+
+@keyframes flagBearer {
+    0%, 100% { 
+        box-shadow: 
+            0 0 0 4px #dc143c,
+            0 0 25px rgba(220, 20, 60, 0.7);
+    }
+    50% { 
+        box-shadow: 
+            0 0 0 5px #ff1493,
+            0 0 35px rgba(255, 20, 147, 0.8);
+    }
+}
+
+/* Giocatore morto */
+.dead-player {
+    opacity: 0.6;
+    filter: grayscale(100%) brightness(0.7);
+    background: 
+        linear-gradient(145deg, rgba(45, 24, 16, 0.5) 0%, rgba(61, 36, 20, 0.4) 100%) !important;
+}
+
+.dead-player::after {
+    content: "💀" !important;
+    background: rgba(45, 24, 16, 0.8) !important;
+    font-size: 20px;
+    width: auto !important;
+    height: auto !important;
+    border: 2px solid #654321 !important;
+    border-radius: 4px;
+    padding: 4px;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.8),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================
+   ELEMENTI DI GIOCO - TEMA WESTERN
+   ========================================== */
+
+.rock-cell {
+    background: 
+        linear-gradient(145deg, rgba(105, 105, 105, 0.9) 0%, rgba(128, 128, 128, 0.8) 50%, rgba(169, 169, 169, 0.7) 100%) !important;
+    border: 2px solid #696969 !important;
+    box-shadow: 
+        inset 2px 2px 4px rgba(255, 255, 255, 0.3),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.rock-cell::after {
+    content: "🪨";
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.flag-cell {
+    background: 
+        linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%) !important;
+    border: 3px solid #8b0000 !important;
+    box-shadow: 
+        0 0 15px rgba(220, 20, 60, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    animation: flagWave 3s ease-in-out infinite;
+}
+
+.flag-cell::after {
+    content: "🏁";
+    font-size: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+@keyframes flagWave {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 0 15px rgba(220, 20, 60, 0.6),
+            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 
+            0 0 25px rgba(220, 20, 60, 0.8),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    }
+}
+
+.bomb-cell {
+    background: 
+        linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%) !important;
+    border: 4px solid #ff4500 !important;
+    animation: dynamiteFuse 1s infinite;
+    box-shadow: 
+        0 0 20px rgba(255, 69, 0, 0.7),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.bomb-cell::after {
+    content: "💣";
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #8b0000;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+@keyframes dynamiteFuse {
+    0% { 
+        transform: scale(1); 
+        background: linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%);
+        box-shadow: 
+            0 0 20px rgba(255, 69, 0, 0.7),
+            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    }
+    50% { 
+        transform: scale(1.08);
+        background: linear-gradient(145deg, rgba(255, 69, 0, 0.9) 0%, rgba(220, 20, 60, 0.8) 100%);
+        box-shadow: 
+            0 0 30px rgba(255, 69, 0, 0.9),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    }
+    100% { 
+        transform: scale(1);
+        background: linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%);
+        box-shadow: 
+            0 0 20px rgba(255, 69, 0, 0.7),
+            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    }
+}
+
+.explosion-warning {
+    background: 
+        linear-gradient(145deg, rgba(255, 165, 0, 0.8) 0%, rgba(255, 69, 0, 0.7) 100%) !important;
+    animation: explosionAlert 0.5s infinite alternate;
+    border: 3px solid #ff4500 !important;
+    box-shadow: 
+        0 0 25px rgba(255, 69, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+@keyframes explosionAlert {
+    0% { 
+        background: linear-gradient(145deg, rgba(255, 165, 0, 0.8) 0%, rgba(255, 69, 0, 0.7) 100%);
+        box-shadow: 
+            0 0 25px rgba(255, 69, 0, 0.8),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    }
+    100% { 
+        background: linear-gradient(145deg, rgba(255, 69, 0, 0.9) 0%, rgba(255, 140, 0, 0.8) 100%);
+        box-shadow: 
+            0 0 35px rgba(255, 140, 0, 0.9),
+            inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* ==========================================
+   EVIDENZIAZIONE AZIONI - STILE WESTERN
+   ========================================== */
+
+.buildable {
+    background: 
+        linear-gradient(145deg, rgba(218, 165, 32, 0.4) 0%, rgba(255, 215, 0, 0.3) 100%) !important;
+    cursor: pointer;
+    animation: goldenGlow 1.5s infinite alternate;
+    border: 3px solid #daa520 !important;
+    box-shadow: 
+        0 0 15px rgba(218, 165, 32, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.buildable:hover {
+    background: 
+        linear-gradient(145deg, rgba(255, 215, 0, 0.6) 0%, rgba(218, 165, 32, 0.5) 100%) !important;
+    transform: scale(1.1);
+    box-shadow: 
+        0 0 25px rgba(255, 215, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.bomb-target {
+    background: 
+        linear-gradient(145deg, rgba(220, 20, 60, 0.4) 0%, rgba(255, 20, 147, 0.3) 100%) !important;
+    cursor: crosshair;
+    animation: bombTargetGlow 1.5s infinite alternate;
+    border: 3px solid #dc143c !important;
+    box-shadow: 
+        0 0 15px rgba(220, 20, 60, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.bomb-target:hover {
+    background: 
+        linear-gradient(145deg, rgba(255, 20, 147, 0.6) 0%, rgba(220, 20, 60, 0.5) 100%) !important;
+    transform: scale(1.1);
+    box-shadow: 
+        0 0 25px rgba(255, 20, 147, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+/* NUOVO: Stili per i bersagli del coltello - Tema Western */
+.knife-target {
+    background: 
+        linear-gradient(145deg, rgba(255, 140, 0, 0.5) 0%, rgba(255, 69, 0, 0.4) 100%) !important;
+    border: 3px solid #ff4500 !important;
+    cursor: pointer;
+    animation: knifeGlow 1.5s infinite alternate;
+    position: relative;
+    box-shadow: 
+        0 0 15px rgba(255, 69, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.knife-target::before {
+    content: "🔪";
+    font-size: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+}
+
+.knife-target:hover {
+    background: 
+        linear-gradient(145deg, rgba(255, 69, 0, 0.7) 0%, rgba(255, 140, 0, 0.6) 100%) !important;
+    transform: scale(1.1);
+    box-shadow: 
+        0 0 25px rgba(255, 69, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+@keyframes goldenGlow {
+    0% { 
+        box-shadow: 
+            0 0 15px rgba(218, 165, 32, 0.6),
+            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        filter: brightness(1);
+    }
+    100% { 
+        box-shadow: 
+            0 0 25px rgba(255, 215, 0, 0.8),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        filter: brightness(1.2);
+    }
+}
+
+@keyframes bombTargetGlow {
+    0% { 
+        box-shadow: 
+            0 0 15px rgba(220, 20, 60, 0.6),
+            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        filter: brightness(1);
+    }
+    100% { 
+        box-shadow: 
+            0 0 25px rgba(255, 20, 147, 0.8),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        filter: brightness(1.2);
+    }
+}
+
+@keyframes knifeGlow {
+    0% { 
+        box-shadow: 
+            0 0 15px rgba(255, 69, 0, 0.6),
+            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        filter: brightness(1);
+    }
+    100% { 
+        box-shadow: 
+            0 0 25px rgba(255, 69, 0, 0.8),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        filter: brightness(1.2);
+    }
+}
+
+/* ==========================================
+   CONTROLLI DI GIOCO - STILE WESTERN/SALOON
+   ========================================== */
+
+#turn-indicator {
+    margin-top: 25px;
+    padding: 20px 30px;
+    background: 
+        linear-gradient(145deg, rgba(61, 36, 20, 0.95) 0%, rgba(101, 67, 33, 0.9) 50%, rgba(139, 69, 19, 0.8) 100%);
+    color: #f5deb3;
+    border: 4px solid #654321;
+    border-radius: 12px;
+    font-size: 1.3em;
+    text-align: center;
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+#turn-indicator::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: 
+        linear-gradient(45deg, #8b4513, #a0522d, #654321, #8b4513);
+    border-radius: 16px;
+    z-index: -1;
+}
+
+#turn-indicator h3 {
+    margin: 0;
+    color: #daa520;
+    font-size: 1.4em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#construction-controls,
+#bomb-controls,
+#knife-controls {
+    display: flex;
+    gap: 15px;
+    margin: 15px;
+    padding: 20px;
+    background: 
+        linear-gradient(145deg, rgba(61, 36, 20, 0.95) 0%, rgba(101, 67, 33, 0.9) 100%);
+    color: #f5deb3;
+    border: 4px solid #654321;
+    border-radius: 12px;
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+#construction-controls::before,
+#bomb-controls::before,
+#knife-controls::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: 
+        linear-gradient(45deg, #8b4513, #a0522d, #654321, #8b4513);
+    border-radius: 16px;
+    z-index: -1;
+}
+
+#build-wall-btn,
+#place-bomb-btn,
+#use-knife-btn {
+    padding: 15px 25px;
+    font-size: 1.3em;
+    border: 4px solid #654321;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+#build-wall-btn {
+    background: 
+        linear-gradient(145deg, rgba(65, 105, 225, 0.9) 0%, rgba(25, 25, 112, 0.8) 50%, rgba(0, 0, 139, 0.7) 100%);
+    color: #f5deb3;
+    border-color: #4169e1;
+}
+
+#place-bomb-btn {
+    background: 
+        linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 50%, rgba(128, 0, 0, 0.7) 100%);
+    color: #f5deb3;
+    border-color: #dc143c;
+}
+
+#use-knife-btn {
+    background: 
+        linear-gradient(145deg, rgba(255, 140, 0, 0.9) 0%, rgba(255, 69, 0, 0.8) 50%, rgba(218, 165, 32, 0.7) 100%);
+    color: #f5deb3;
+    border-color: #ff4500;
+}
+
+#build-wall-btn:hover,
+#place-bomb-btn:hover,
+#use-knife-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 10px 20px rgba(0, 0, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 0 25px rgba(218, 165, 32, 0.4);
+}
+
+#build-wall-btn:hover {
+    background: 
+        linear-gradient(145deg, rgba(100, 149, 237, 0.9) 0%, rgba(65, 105, 225, 0.8) 100%);
+    border-color: #87ceeb;
+}
+
+#place-bomb-btn:hover {
+    background: 
+        linear-gradient(145deg, rgba(255, 20, 147, 0.9) 0%, rgba(220, 20, 60, 0.8) 100%);
+    border-color: #ff1493;
+}
+
+#use-knife-btn:hover {
+    background: 
+        linear-gradient(145deg, rgba(255, 215, 0, 0.9) 0%, rgba(255, 140, 0, 0.8) 100%);
+    border-color: #ffd700;
+}
+
+/* NUOVO: Stili per modalità coltello attiva - Tema Western */
+#use-knife-btn.active-mode {
+    background: linear-gradient(145deg, rgba(255, 69, 0, 0.95) 0%, rgba(255, 140, 0, 0.9) 100%);
+    box-shadow: 0 0 25px rgba(255, 69, 0, 0.8), 0 6px 12px rgba(0, 0, 0, 0.6);
+    animation: knifePulse 1s infinite;
+    transform: scale(1.1);
+    border-color: #ffd700;
+}
+
+@keyframes knifePulse {
+    0% { 
+        box-shadow: 
+            0 0 25px rgba(255, 69, 0, 0.8),
+            0 6px 12px rgba(0, 0, 0, 0.6);
+        filter: brightness(1);
+    }
+    50% { 
+        box-shadow: 
+            0 0 35px rgba(255, 215, 0, 1),
+            0 8px 16px rgba(0, 0, 0, 0.6);
+        filter: brightness(1.3);
+    }
+    100% { 
+        box-shadow: 
+            0 0 25px rgba(255, 69, 0, 0.8),
+            0 6px 12px rgba(0, 0, 0, 0.6);
+        filter: brightness(1);
+    }
+}
+
+/* Giocatore in modalità coltello */
+.knife-mode-active {
+    box-shadow: 
+        0 0 0 5px #ff4500,
+        0 0 25px rgba(255, 69, 0, 0.8);
+    animation: knifePlayerPulse 1.5s infinite;
+}
+
+@keyframes knifePlayerPulse {
+    0% { 
+        box-shadow: 
+            0 0 0 5px #ff4500,
+            0 0 25px rgba(255, 69, 0, 0.8);
+        filter: brightness(1);
+    }
+    50% { 
+        box-shadow: 
+            0 0 0 7px #ffd700,
+            0 0 35px rgba(255, 215, 0, 0.9);
+        filter: brightness(1.2);
+    }
+    100% { 
+        box-shadow: 
+            0 0 0 5px #ff4500,
+            0 0 25px rgba(255, 69, 0, 0.8);
+        filter: brightness(1);
+    }
+}
+
+/* Effetto globale quando si è in modalità coltello */
+body.knife-mode {
+    background: 
+        radial-gradient(ellipse at top left, rgba(139, 69, 19, 0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom right, rgba(255, 69, 0, 0.3) 0%, transparent 60%),
+        linear-gradient(135deg, #2d1810 0%, #3d2414 20%, #4a2c17 40%, #5d3a1f 60%, #3d2414 80%, #2d1810 100%);
+}
+
+body.knife-mode table {
+    box-shadow: 
+        0 0 40px rgba(255, 69, 0, 0.4),
+        0 15px 35px rgba(0, 0, 0, 0.8);
+}
+
+body.knife-mode #turn-indicator {
+    border: 3px solid #ff4500;
+    background: 
+        linear-gradient(145deg, rgba(139, 69, 19, 0.95) 0%, rgba(160, 82, 45, 0.9) 100%);
+}
+
+body.knife-mode #turn-indicator h3::after {
+    content: " 🔪 DUELLO IN CORSO";
+    color: #ff4500;
+    font-size: 0.9em;
+    display: block;
+    margin-top: 8px;
+    animation: duelGlow 2s infinite alternate;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes duelGlow {
+    0% { 
+        text-shadow: 
+            2px 2px 4px rgba(0, 0, 0, 0.8),
+            0 0 10px rgba(255, 69, 0, 0.5);
+        color: #ff4500;
+    }
+    100% { 
+        text-shadow: 
+            2px 2px 4px rgba(0, 0, 0, 0.8),
+            0 0 20px rgba(255, 215, 0, 1);
+        color: #ffd700;
+    }
+}
+
+/* ==========================================
+   SCHERMATA VITTORIA - STILE WESTERN
+   ========================================== */
+
+#victory-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(145deg, rgba(0, 0, 0, 0.9) 0%, rgba(61, 36, 20, 0.8) 100%);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #f5deb3;
+    font-size: 2em;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+#victory-screen h1 {
+    color: #ffd700;
+    font-size: 5em;
+    margin-bottom: 30px;
+    text-shadow: 
+        3px 3px 0px #8b4513,
+        6px 6px 0px #654321,
+        9px 9px 0px #3d2414,
+        12px 12px 25px rgba(0, 0, 0, 0.8);
+    animation: victoryGlow 2s infinite alternate;
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+}
+
+#victory-screen h1::before {
+    content: '🤠';
+    position: absolute;
+    left: -100px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    animation: victoryCelebration 3s ease-in-out infinite;
+}
+
+#victory-screen h1::after {
+    content: '🤠';
+    position: absolute;
+    right: -100px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    animation: victoryCelebration 3s ease-in-out infinite reverse;
+}
+
+@keyframes victoryGlow {
+    0% { 
+        text-shadow: 
+            3px 3px 0px #8b4513,
+            6px 6px 0px #654321,
+            9px 9px 0px #3d2414,
+            12px 12px 25px rgba(0, 0, 0, 0.8);
+    }
+    100% { 
+        text-shadow: 
+            3px 3px 0px #8b4513,
+            6px 6px 0px #654321,
+            9px 9px 0px #3d2414,
+            12px 12px 35px rgba(255, 215, 0, 1);
+    }
+}
+
+@keyframes victoryCelebration {
+    0%, 100% { 
+        transform: translateY(-50%) rotate(0deg) scale(1);
+    }
+    25% { 
+        transform: translateY(-60%) rotate(10deg) scale(1.1);
+    }
+    75% { 
+        transform: translateY(-40%) rotate(-10deg) scale(1.1);
+    }
+}
+
+#victory-screen p {
+    color: #f5deb3;
+    font-size: 1.8em;
+    margin-bottom: 40px;
+    text-align: center;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+#victory-screen button {
+    padding: 20px 40px;
+    font-size: 1.2em;
+    background: 
+        linear-gradient(145deg, #8b4513 0%, #a0522d 20%, #cd853f 40%, #daa520 50%, #cd853f 60%, #a0522d 80%, #8b4513 100%);
+    color: #f5deb3;
+    border: 4px solid #654321;
+    border-radius: 15px;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: all 0.4s ease;
+    box-shadow: 
+        0 10px 20px rgba(0, 0, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+#victory-screen button:hover {
+    background: 
+        linear-gradient(145deg, #a0522d 0%, #cd853f 20%, #daa520 40%, #ffd700 50%, #daa520 60%, #cd853f 80%, #a0522d 100%);
+    border-color: #daa520;
+    transform: translateY(-5px);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 0 30px rgba(218, 165, 32, 0.5);
+    color: #fff;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN - WESTERN
+   ========================================== */
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .role-options-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .role-option {
+        width: 280px;
+        max-width: 90vw;
+        margin: 0;
+    }
+    
+    .cella {
+        width: 35px;
+        height: 35px;
+        min-width: 35px;
+        min-height: 35px;
+        padding: 8px;
+    }
+    
+    #victory-screen h1 {
+        font-size: 3.5em;
+        letter-spacing: 4px;
+    }
+    
+    #victory-screen h1::before,
+    #victory-screen h1::after {
+        display: none;
+    }
+    
+    #role-selection h1 {
+        font-size: 2.8em;
+        letter-spacing: 3px;
+    }
+    
+    #contentbox {
+        padding: 20px;
+        margin: 10px;
+        max-width: calc(100vw - 20px);
+    }
+    
+    #role-selection {
+        padding: 30px 20px;
+        margin: 10px;
+        max-width: calc(100vw - 20px);
+    }
+    
+    table {
+        border: 4px solid #654321;
+        max-width: calc(100vw - 60px);
+    }
+    
+    #construction-controls,
+    #bomb-controls,
+    #knife-controls {
+        flex-direction: column;
+        gap: 10px;
+        margin: 10px 5px;
+    }
+    
+    #build-wall-btn,
+    #place-bomb-btn,
+    #use-knife-btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1.1em;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    
+    #role-selection h1 {
+        font-size: 2.2em;
+        letter-spacing: 2px;
+    }
+    
+    .role-option {
+        width: 100%;
+        max-width: calc(100vw - 40px);
+        padding: 25px 20px;
+    }
+    
+    #victory-screen h1 {
+        font-size: 2.8em;
+        letter-spacing: 2px;
+    }
+    
+    .cella {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        padding: 6px;
+    }
+    
+    table {
+        border: 3px solid #654321;
+        max-width: calc(100vw - 30px);
+    }
+    
+    #contentbox {
+        padding: 15px 10px;
+        margin: 5px;
+        max-width: calc(100vw - 10px);
+    }
+    
+    #role-selection {
+        padding: 20px 15px;
+        margin: 5px;
+        max-width: calc(100vw - 10px);
+    }
+    
+    #turn-indicator {
+        padding: 15px 20px;
+        font-size: 1.1em;
+        margin: 20px 5px;
+    }
+    
+    #turn-indicator h3 {
+        font-size: 1.2em;
+    }
+    
+    #construction-controls,
+    #bomb-controls,
+    #knife-controls {
+        margin: 10px 5px;
+        padding: 15px 10px;
+    }
+}
+
+/* ==========================================
+   ANIMAZIONI EXTRA WESTERN
+   ========================================== */
+
+/* Animazione ingresso saloon */
+#contentbox,
+#role-selection {
+    animation: saloonDoors 1.5s ease-out;
+    transform-style: preserve-3d;
+}
+
+@keyframes saloonDoors {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px) rotateY(-15deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) rotateY(0deg);
+    }
+}
+
+/* Effetto polvere per hover elementi */
+.cella:hover,
+.role-option:hover,
+button:hover {
+    position: relative;
+}
+
+.cella:hover::before,
+.role-option:hover::before,
+button:hover::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(222, 184, 135, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(210, 180, 140, 0.2) 0%, transparent 50%);
+    border-radius: inherit;
+    z-index: -1;
+    animation: dustCloud 0.3s ease-out;
+    pointer-events: none;
+}
+
+@keyframes dustCloud {
+    0% { 
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#loading-screen {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, rgba(45, 24, 16, 0.98) 0%, rgba(34, 18, 12, 0.95) 100%);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    font-family: 'Georgia', serif;
+}
+
+.loading-container {
+    text-align: center;
+    background: linear-gradient(145deg, rgba(139, 69, 19, 0.9) 0%, rgba(101, 67, 33, 0.8) 100%);
+    padding: 40px;
+    border-radius: 20px;
+    border: 4px solid #654321;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+    max-width: 500px;
+}
+
+.loading-title {
+    color: #daa520;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+}
+
+.loading-subtitle {
+    color: #f5deb3;
+    font-size: 1.3rem;
+    margin-bottom: 30px;
+    animation: pulse 2s infinite;
+}
+
+.loading-spinner {
+    margin: 30px 0;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(245, 222, 179, 0.3);
+    border-top: 4px solid #daa520;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+.loading-info {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(245, 222, 179, 0.3);
+}
+
+.info-line {
+    color: #f5deb3;
+    font-size: 1.1rem;
+    margin: 8px 0;
+}
+
+.info-line strong {
+    color: #daa520;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+/* Stili per l'interfaccia di gioco */
+#game-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(139, 69, 19, 0.2);
+    border-radius: 8px;
+    border: 2px solid rgba(101, 67, 33, 0.4);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #8b4513;
+}
+
+#control-box {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    background: linear-gradient(145deg, rgba(139, 69, 19, 0.1) 0%, rgba(101, 67, 33, 0.05) 100%);
+    border-radius: 12px;
+    border: 2px solid rgba(101, 67, 33, 0.3);
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: 3px solid;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', serif;
+}
+
+.constructor-btn {
+    background: linear-gradient(145deg, #8b4513 0%, #a0522d 100%);
+    color: #f5deb3;
+    border-color: #654321;
+}
+
+.constructor-btn:hover {
+    background: linear-gradient(145deg, #a0522d 0%, #8b4513 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.bomber-btn {
+    background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+    color: #fff;
+    border-color: #8b0000;
+}
+
+.bomber-btn:hover {
+    background: linear-gradient(145deg, #b22222 0%, #dc143c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.knife-btn {
+    background: linear-gradient(145deg, #2f4f2f 0%, #228b22 100%);
+    color: #fff;
+    border-color: #006400;
+}
+
+.knife-btn:hover {
+    background: linear-gradient(145deg, #228b22 0%, #2f4f2f 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn.active-mode {
+    animation: activeMode 1s ease-in-out infinite alternate;
+}
+
+@keyframes activeMode {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+}
+
+.control-hint {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.turn-controls {
+    text-align: center;
+    padding: 15px;
+    background: rgba(245, 222, 179, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(245, 222, 179, 0.3);
+}
+
+.move-counter {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #8b4513;
+    margin-bottom: 8px;
+}
+
+.turn-hint {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Stili schermata vittoria */
+#victory-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.victory-container {
+    text-align: center;
+    background: linear-gradient(145deg, rgba(139, 69, 19, 0.95) 0%, rgba(101, 67, 33, 0.9) 100%);
+    padding: 50px;
+    border-radius: 20px;
+    border: 4px solid #654321;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+    color: #f5deb3;
+    font-family: 'Georgia', serif;
+}
+
+.victory-title {
+    font-size: 3.5rem;
+    margin-bottom: 30px;
+    text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.8);
+    animation: victoryPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes victoryPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
+#victory-message {
+    font-size: 1.5rem;
+    margin-bottom: 40px;
+}
+
+.victory-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.victory-btn {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: linear-gradient(145deg, #daa520 0%, #b8860b 100%);
+    color: #2d1810;
+    border: 3px solid #8b4513;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', serif;
+    text-decoration: none;
+}
+
+.victory-btn:hover {
+    background: linear-gradient(145deg, #b8860b 0%, #daa520 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.victory-btn.secondary {
+    background: linear-gradient(145deg, #8b4513 0%, #654321 100%);
+    color: #f5deb3;
+}
+
+.victory-btn.secondary:hover {
+    background: linear-gradient(145deg, #654321 0%, #8b4513 100%);
+}
+
+/* Notifica disconnessione */
+#disconnect-notification {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+}
+
+.disconnect-container {
+    text-align: center;
+    background: linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%);
+    padding: 40px;
+    border-radius: 15px;
+    border: 3px solid #8b0000;
+    color: #fff;
+    font-family: 'Georgia', serif;
+}
+
+.disconnect-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.reconnect-btn, .lobby-btn {
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    border: 2px solid;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', serif;
+}
+
+.reconnect-btn {
+    background: #228b22;
+    color: #fff;
+    border-color: #006400;
+}
+
+.lobby-btn {
+    background: #8b4513;
+    color: #f5deb3;
+    border-color: #654321;
+}
