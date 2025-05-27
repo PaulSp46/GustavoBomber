@@ -907,17 +907,21 @@ class MultiplayerGame {
     }
 
     // ==========================================
-    // GESTIONE BOMBE
+    // GESTIONE BOMBE CORRETTA
     // ==========================================
 
     async processBombExplosions() {
+        // Trova bombe che esplodono (timer <= 1)
         const explodingBombs = this.gameData.bombs.filter(bomb => bomb.timer <= 1);
         
         if (explodingBombs.length === 0) {
-            const updatedBombs = this.gameData.bombs.map(bomb => ({
-                ...bomb,
-                timer: bomb.timer - 1
-            })).filter(bomb => bomb.timer > 0);
+            // Solo decrementa il timer delle bombe rimanenti
+            const updatedBombs = this.gameData.bombs
+                .map(bomb => ({
+                    ...bomb,
+                    timer: bomb.timer - 1
+                }))
+                .filter(bomb => bomb.timer > 0); // Rimuovi bombe con timer 0 o meno
             
             await this.executeWithRetry(async () => {
                 await this.network.database.ref(`games/${this.playerData.currentRoom}/bombs`).set(updatedBombs);
@@ -926,25 +930,42 @@ class MultiplayerGame {
         }
 
         try {
+            console.log(`💥 ${explodingBombs.length} bombe stanno esplodendo!`);
+            
+            // Mostra preview esplosione prima del danno
+            this.showExplosionPreview(explodingBombs);
+            
+            // Aspetta un momento per l'effetto visivo
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             let playerUpdates = {};
             let playersKilled = [];
             let updatedRocks = [...(this.gameData.firebaseGameData.gameBoard?.rocks || [])];
+            let explosionCells = new Set(); // Track delle celle esplose
 
-            // Processa esplosioni
+            // Processa esplosioni per ogni bomba
             for (const bomb of explodingBombs) {
+                console.log(`💣 Esplosione bomba a (${bomb.row}, ${bomb.col})`);
+                
+                // Raggio esplosione 3x3 centrato sulla bomba
                 for (let i = Math.max(0, bomb.row - 1); i <= Math.min(GAME_CONFIG.ROWS - 1, bomb.row + 1); i++) {
                     for (let j = Math.max(0, bomb.col - 1); j <= Math.min(GAME_CONFIG.COLS - 1, bomb.col + 1); j++) {
+                        
+                        // Aggiungi alla lista delle celle esplose
+                        explosionCells.add(`${i}-${j}`);
                         
                         // Distruggi rocce
                         const rockIndex = updatedRocks.findIndex(rock => rock.row === i && rock.col === j);
                         if (rockIndex !== -1) {
                             updatedRocks.splice(rockIndex, 1);
+                            console.log(`🪨 Roccia distrutta a (${i}, ${j})`);
                         }
 
                         // Uccidi giocatori
                         const playerHit = this.gameData.players.find(p => 
                             p.row === i && p.col === j && p.isAlive
                         );
+                        
                         if (playerHit && !playersKilled.includes(playerHit.firebaseId)) {
                             playersKilled.push(playerHit.firebaseId);
                             
@@ -955,22 +976,30 @@ class MultiplayerGame {
                             playerUpdates[`players/${playerHit.firebaseId}/col`] = spawnPos.col;
                             playerUpdates[`players/${playerHit.firebaseId}/hasFlag`] = false;
                             
+                            console.log(`💀 Giocatore ${playerHit.name} eliminato dall'esplosione`);
+                            
+                            // Se aveva la bandiera, liberala
                             if (playerHit.hasFlag) {
                                 const flagPos = playerHit.team === 'top' ? 'bottom' : 'top';
                                 playerUpdates[`gameBoard/flags/${flagPos}/captured`] = false;
+                                console.log(`🏁 Bandiera ${flagPos} liberata`);
                             }
                         }
                     }
                 }
             }
 
-            // Aggiorna bombe
-            const updatedBombs = this.gameData.bombs.map(bomb => ({
-                ...bomb,
-                timer: bomb.timer - 1
-            })).filter(bomb => bomb.timer > 0);
+            // Aggiorna le bombe: rimuovi quelle esplose, decrementa timer delle altre
+            const updatedBombs = this.gameData.bombs
+                .filter(bomb => bomb.timer > 1) // Rimuovi bombe esplose (timer <= 1)
+                .map(bomb => ({
+                    ...bomb,
+                    timer: bomb.timer - 1
+                }));
 
-            // Aggiornamento atomico
+            console.log(`🧨 Bombe rimanenti dopo esplosione: ${updatedBombs.length}`);
+
+            // Aggiornamento atomico del database
             const updates = {
                 bombs: updatedBombs,
                 'gameBoard/rocks': updatedRocks,
@@ -981,11 +1010,66 @@ class MultiplayerGame {
                 await this.network.database.ref(`games/${this.playerData.currentRoom}`).update(updates);
             });
 
+            // Mostra effetto esplosione finale
+            this.showExplosionEffect(explosionCells);
+            
+            // Rimuovi effetti dopo un breve periodo
+            setTimeout(() => {
+                this.clearExplosionEffects();
+            }, 1500);
+
+            // Controlla se il gioco è finito
             await this.checkGameEnd();
 
         } catch (error) {
             console.error('❌ Errore esplosione bombe:', error);
             throw error;
+        }
+    }
+
+    // Mostra preview dell'esplosione (celle che verranno colpite)
+    showExplosionPreview(explodingBombs) {
+        console.log('⚠️ Mostrando preview esplosione...');
+        
+        // Rimuovi preview precedenti
+        this.clearExplosionEffects();
+        
+        explodingBombs.forEach(bomb => {
+            // Raggio esplosione 3x3
+            for (let i = Math.max(0, bomb.row - 1); i <= Math.min(GAME_CONFIG.ROWS - 1, bomb.row + 1); i++) {
+                for (let j = Math.max(0, bomb.col - 1); j <= Math.min(GAME_CONFIG.COLS - 1, bomb.col + 1); j++) {
+                    const cell = this.ui.tbl.rows[i].cells[j];
+                    cell.classList.add("explosion-warning");
+                }
+            }
+        });
+    }
+
+    // Mostra effetto esplosione finale
+    showExplosionEffect(explosionCells) {
+        console.log('💥 Mostrando effetto esplosione finale...');
+        
+        explosionCells.forEach(cellKey => {
+            const [row, col] = cellKey.split('-').map(Number);
+            const cell = this.ui.tbl.rows[row].cells[col];
+            
+            // Rimuovi warning e aggiungi effetto esplosione
+            cell.classList.remove("explosion-warning");
+            cell.classList.add("explosion-effect");
+            
+            // Aggiungi animazione di shake
+            cell.style.animation = 'explosionShake 0.5s ease-in-out';
+        });
+    }
+
+    // Pulisce tutti gli effetti di esplosione
+    clearExplosionEffects() {
+        for (let i = 0; i < GAME_CONFIG.ROWS; i++) {
+            for (let j = 0; j < GAME_CONFIG.COLS; j++) {
+                const cell = this.ui.tbl.rows[i].cells[j];
+                cell.classList.remove("explosion-warning", "explosion-effect");
+                cell.style.animation = '';
+            }
         }
     }
 
@@ -1035,10 +1119,14 @@ class MultiplayerGame {
             const newBomb = {
                 row: row,
                 col: col,
-                timer: GAME_CONFIG.BOMB_TIMER
+                timer: GAME_CONFIG.BOMB_TIMER, // Timer iniziale (3)
+                placedBy: this.playerData.myPlayerId,
+                placedAt: Date.now()
             };
 
             const updatedBombs = [...this.gameData.bombs, newBomb];
+            
+            console.log(`💣 Bomba piazzata a (${row}, ${col}) con timer ${newBomb.timer}`);
             
             await this.executeWithRetry(async () => {
                 await this.network.database.ref(`games/${this.playerData.currentRoom}`).update({
@@ -1051,6 +1139,9 @@ class MultiplayerGame {
             this.gameState.bombMode = false;
             this.clearBombTargets();
 
+            // Mostra notifica
+            this.showBombPlacedNotification();
+
             if (this.gameState.currentMovesMade >= GAME_CONFIG.MAX_MOVES_PER_TURN) {
                 setTimeout(() => this.endTurn(), 100);
             }
@@ -1059,6 +1150,39 @@ class MultiplayerGame {
             console.error('❌ Errore piazzamento bomba:', error);
             this.showError('Errore durante il piazzamento della bomba');
         }
+    }
+
+    // Notifica quando una bomba viene piazzata
+    showBombPlacedNotification() {
+        // Crea notifica temporanea
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(220, 20, 60, 0.95) 0%, rgba(139, 0, 0, 0.9) 100%);
+            color: #fff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            border: 3px solid #8b0000;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+            animation: bombPlacedNotif 2s ease-out forwards;
+        `;
+        notification.innerHTML = '💣 BOMBA PIAZZATA!<br><small>Esploderà tra 3 turni</small>';
+        
+        document.body.appendChild(notification);
+        
+        // Rimuovi dopo 2 secondi
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 2000);
     }
 
     async buildWall(row, col) {
@@ -1233,17 +1357,50 @@ class MultiplayerGame {
         }
     }
 
+    // Aggiorna la funzione updateBombsDisplay per gestire meglio i timer
     updateBombsDisplay() {
+        // Rimuovi tutte le classi bomba esistenti
         for (let i = 0; i < GAME_CONFIG.ROWS; i++) {
             for (let j = 0; j < GAME_CONFIG.COLS; j++) {
-                this.ui.tbl.rows[i].cells[j].classList.remove("bomb-cell");
+                const cell = this.ui.tbl.rows[i].cells[j];
+                cell.classList.remove("bomb-cell", "bomb-timer-3", "bomb-timer-2", "bomb-timer-1");
+                // Rimuovi il timer text se esiste
+                const timerElement = cell.querySelector('.bomb-timer');
+                if (timerElement) {
+                    timerElement.remove();
+                }
             }
         }
 
+        // Aggiungi bombe attuali con timer visibili
         this.gameData.bombs.forEach(bomb => {
             if (bomb.row >= 0 && bomb.row < GAME_CONFIG.ROWS && 
                 bomb.col >= 0 && bomb.col < GAME_CONFIG.COLS) {
-                this.ui.tbl.rows[bomb.row].cells[bomb.col].classList.add("bomb-cell");
+                
+                const cell = this.ui.tbl.rows[bomb.row].cells[bomb.col];
+                cell.classList.add("bomb-cell", `bomb-timer-${bomb.timer}`);
+                
+                // Aggiungi timer visibile
+                const timerElement = document.createElement('div');
+                timerElement.className = 'bomb-timer';
+                timerElement.textContent = bomb.timer;
+                timerElement.style.cssText = `
+                    position: absolute;
+                    top: 2px;
+                    right: 2px;
+                    background: rgba(255, 0, 0, 0.8);
+                    color: white;
+                    border-radius: 50%;
+                    width: 16px;
+                    height: 16px;
+                    font-size: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    z-index: 10;
+                `;
+                cell.appendChild(timerElement);
             }
         });
     }

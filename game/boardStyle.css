@@ -1819,3 +1819,388 @@ button:hover::before {
     color: #f5deb3;
     border-color: #654321;
 }
+
+/* ==========================================
+   STILI BOMBE ED ESPLOSIONI MIGLIORATI
+   ========================================== */
+
+/* Bombe con timer differenziati */
+.bomb-cell {
+    background: 
+        linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%) !important;
+    border: 4px solid #ff4500 !important;
+    position: relative;
+    box-shadow: 
+        0 0 20px rgba(255, 69, 0, 0.7),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.bomb-cell::after {
+    content: "💣";
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #8b0000;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+    z-index: 5;
+}
+
+/* Timer specifici per diversi countdown */
+.bomb-timer-3 {
+    animation: bombPulse3 1s infinite;
+    border-color: #ff4500 !important;
+    background: linear-gradient(145deg, rgba(255, 140, 0, 0.9) 0%, rgba(220, 20, 60, 0.8) 100%) !important;
+}
+
+.bomb-timer-2 {
+    animation: bombPulse2 0.8s infinite;
+    border-color: #ff6347 !important;
+    background: linear-gradient(145deg, rgba(255, 99, 71, 0.9) 0%, rgba(255, 69, 0, 0.8) 100%) !important;
+}
+
+.bomb-timer-1 {
+    animation: bombPulse1 0.5s infinite;
+    border-color: #ff0000 !important;
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.95) 0%, rgba(220, 20, 60, 0.9) 100%) !important;
+    box-shadow: 
+        0 0 30px rgba(255, 0, 0, 0.9),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Animazioni diverse per ogni timer */
+@keyframes bombPulse3 {
+    0% { 
+        transform: scale(1); 
+        box-shadow: 0 0 20px rgba(255, 140, 0, 0.7);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(255, 140, 0, 0.8);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(255, 140, 0, 0.7);
+    }
+}
+
+@keyframes bombPulse2 {
+    0% { 
+        transform: scale(1); 
+        box-shadow: 0 0 25px rgba(255, 99, 71, 0.8);
+    }
+    50% { 
+        transform: scale(1.08);
+        box-shadow: 0 0 30px rgba(255, 99, 71, 0.9);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(255, 99, 71, 0.8);
+    }
+}
+
+@keyframes bombPulse1 {
+    0% { 
+        transform: scale(1) rotate(0deg); 
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.9);
+    }
+    25% { 
+        transform: scale(1.1) rotate(-1deg);
+        box-shadow: 0 0 40px rgba(255, 0, 0, 1);
+    }
+    50% { 
+        transform: scale(1.12) rotate(0deg);
+        box-shadow: 0 0 45px rgba(255, 0, 0, 1);
+    }
+    75% { 
+        transform: scale(1.1) rotate(1deg);
+        box-shadow: 0 0 40px rgba(255, 0, 0, 1);
+    }
+    100% { 
+        transform: scale(1) rotate(0deg);
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.9);
+    }
+}
+
+/* ==========================================
+   EFFETTI DI ESPLOSIONE
+   ========================================== */
+
+/* Warning prima dell'esplosione */
+.explosion-warning {
+    background: 
+        linear-gradient(145deg, rgba(255, 165, 0, 0.8) 0%, rgba(255, 69, 0, 0.7) 100%) !important;
+    animation: explosionAlert 0.3s infinite alternate !important;
+    border: 3px solid #ff4500 !important;
+    box-shadow: 
+        0 0 25px rgba(255, 69, 0, 0.8),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3) !important;
+    z-index: 10 !important;
+    position: relative !important;
+}
+
+.explosion-warning::before {
+    content: "⚠️";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    z-index: 15;
+    animation: warningBlink 0.3s infinite;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+@keyframes explosionAlert {
+    0% { 
+        background: linear-gradient(145deg, rgba(255, 165, 0, 0.8) 0%, rgba(255, 69, 0, 0.7) 100%);
+        box-shadow: 
+            0 0 25px rgba(255, 69, 0, 0.8),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        transform: scale(1);
+    }
+    100% { 
+        background: linear-gradient(145deg, rgba(255, 69, 0, 0.9) 0%, rgba(255, 140, 0, 0.8) 100%);
+        box-shadow: 
+            0 0 35px rgba(255, 140, 0, 0.9),
+            inset 0 2px 4px rgba(255, 255, 255, 0.4);
+        transform: scale(1.05);
+    }
+}
+
+@keyframes warningBlink {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* Effetto esplosione finale */
+.explosion-effect {
+    background: 
+        radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 140, 0, 0.8) 30%, rgba(255, 69, 0, 0.7) 60%, rgba(220, 20, 60, 0.6) 100%) !important;
+    border: 4px solid #ffffff !important;
+    box-shadow: 
+        0 0 50px rgba(255, 255, 255, 1),
+        0 0 100px rgba(255, 140, 0, 0.8),
+        inset 0 0 20px rgba(255, 255, 255, 0.5) !important;
+    animation: explosionFlash 1.5s ease-out !important;
+    z-index: 20 !important;
+    position: relative !important;
+}
+
+.explosion-effect::before {
+    content: "💥";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    z-index: 25;
+    animation: explosionIcon 1.5s ease-out;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+@keyframes explosionFlash {
+    0% { 
+        background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 100%);
+        box-shadow: 
+            0 0 50px rgba(255, 255, 255, 1),
+            0 0 100px rgba(255, 255, 255, 0.8);
+        transform: scale(1.3);
+    }
+    10% {
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 140, 0, 0.8) 30%, rgba(255, 69, 0, 0.7) 100%);
+        box-shadow: 
+            0 0 60px rgba(255, 140, 0, 1),
+            0 0 120px rgba(255, 69, 0, 0.8);
+        transform: scale(1.2);
+    }
+    50% {
+        background: radial-gradient(circle, rgba(255, 140, 0, 0.8) 0%, rgba(255, 69, 0, 0.7) 50%, rgba(220, 20, 60, 0.6) 100%);
+        box-shadow: 
+            0 0 40px rgba(255, 69, 0, 0.8),
+            0 0 80px rgba(220, 20, 60, 0.6);
+        transform: scale(1.1);
+    }
+    100% { 
+        background: radial-gradient(circle, rgba(220, 20, 60, 0.4) 0%, transparent 100%);
+        box-shadow: 
+            0 0 20px rgba(220, 20, 60, 0.4),
+            0 0 40px rgba(220, 20, 60, 0.2);
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+@keyframes explosionIcon {
+    0% { 
+        transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        transform: translate(-50%, -50%) scale(1.5) rotate(20deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(-10deg);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 0;
+    }
+}
+
+/* Animazione shake per l'esplosione */
+@keyframes explosionShake {
+    0% { transform: translate(0); }
+    10% { transform: translate(-2px, -2px); }
+    20% { transform: translate(2px, -2px); }
+    30% { transform: translate(-2px, 2px); }
+    40% { transform: translate(2px, 2px); }
+    50% { transform: translate(-1px, -2px); }
+    60% { transform: translate(1px, 2px); }
+    70% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, -1px); }
+    90% { transform: translate(-1px, 2px); }
+    100% { transform: translate(0); }
+}
+
+/* ==========================================
+   NOTIFICHE BOMBA
+   ========================================== */
+
+/* Animazione per notifica bomba piazzata */
+@keyframes bombPlacedNotif {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+    }
+    20% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+    80% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* Timer visibile sulla bomba */
+.bomb-timer {
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    background: linear-gradient(145deg, rgba(255, 0, 0, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%) !important;
+    color: white !important;
+    border: 2px solid #fff !important;
+    border-radius: 50% !important;
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: bold !important;
+    z-index: 15 !important;
+    font-family: 'Georgia', serif !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.6),
+        inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+    animation: timerPulse 1s infinite !important;
+}
+
+@keyframes timerPulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 
+            0 2px 4px rgba(0, 0, 0, 0.6),
+            0 0 8px rgba(255, 0, 0, 0.6);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 
+            0 2px 6px rgba(0, 0, 0, 0.6),
+            0 0 12px rgba(255, 0, 0, 0.8);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 2px 4px rgba(0, 0, 0, 0.6),
+            0 0 8px rgba(255, 0, 0, 0.6);
+    }
+}
+
+/* Timer quasi scaduto */
+.bomb-timer-1 .bomb-timer {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 0, 0, 0.9) 100%) !important;
+    border-color: #ff0000 !important;
+    animation: criticalTimer 0.3s infinite !important;
+    color: #ff0000 !important;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 1) !important;
+}
+
+@keyframes criticalTimer {
+    0% { 
+        transform: scale(1);
+        box-shadow: 
+            0 2px 4px rgba(0, 0, 0, 0.6),
+            0 0 15px rgba(255, 0, 0, 1);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 0, 0, 0.9) 100%);
+    }
+    50% { 
+        transform: scale(1.2);
+        box-shadow: 
+            0 2px 6px rgba(0, 0, 0, 0.6),
+            0 0 25px rgba(255, 255, 255, 1);
+        background: linear-gradient(145deg, rgba(255, 0, 0, 0.9) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 2px 4px rgba(0, 0, 0, 0.6),
+            0 0 15px rgba(255, 0, 0, 1);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 0, 0, 0.9) 100%);
+    }
+}
+
+/* ==========================================
+   RESPONSIVITÀ EFFETTI ESPLOSIONE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .explosion-effect::before {
+        font-size: 20px;
+    }
+    
+    .explosion-warning::before {
+        font-size: 16px;
+    }
+    
+    .bomb-timer {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 10px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .explosion-effect::before {
+        font-size: 18px;
+    }
+    
+    .explosion-warning::before {
+        font-size: 14px;
+    }
+    
+    .bomb-timer {
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 9px !important;
+    }
+}
