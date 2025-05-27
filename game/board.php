@@ -173,7 +173,7 @@
                         `;
                     }
                 }
-            }, 15000); // 15 secondi timeout
+            }, 30000); // 30 secondi timeout
         });
     </script>
 </body>

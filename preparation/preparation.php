@@ -1,4 +1,6 @@
 <?php
+    // CONTROLLO SICUREZZA: Verifica che sia stato passato il codice stanza
+    // Se manca, reindirizza alla homepage
     if (!isset($_GET["roomCode"])) {
         header("Location: ../index.html");
     }
@@ -17,18 +19,19 @@
     <div class="preparation-container">
         <h1>Preparazione Squadra</h1>
         
-        <!-- Insegna del Saloon -->
+        <!-- INTERFACCIA UTENTE: Insegna del Saloon tema western -->
         <div class="saloon-sign">
             <div class="saloon-banner">🤠 SCEGLI LA TUA FAZIONE 🤠</div>
         </div>
 
-        <!-- Stanza corrente -->
+        <!-- DISPLAY STANZA: Mostra il codice della stanza corrente -->
         <div class="status success">
             Stanza: <span id="room-code-display"></span>
         </div>
 
-        <!-- Selezione Team -->
+        <!-- SELEZIONE SQUADRE: Due colonne per Team Nord e Team Sud -->
         <div class="teams-selection">
+            <!-- TEAM NORD (Blu) - Massimo 2 giocatori -->
             <div class="team-column team-top">
                 <div class="team-header">
                     <h3>🔵 Team Nord</h3>
@@ -37,13 +40,14 @@
                     </div>
                 </div>
                 <div class="team-players" id="team-top-players">
-                    <!-- Giocatori del team superiore -->
+                    <!-- Contenitore dinamico per i giocatori del team superiore -->
                 </div>
                 <button class="join-team-btn" id="join-top-btn" onclick="joinTeam('top')">
                     Unisciti al Team Nord
                 </button>
             </div>
 
+            <!-- TEAM SUD (Rosso) - Massimo 2 giocatori -->
             <div class="team-column team-bottom">
                 <div class="team-header">
                     <h3>🔴 Team Sud</h3>
@@ -52,7 +56,7 @@
                     </div>
                 </div>
                 <div class="team-players" id="team-bottom-players">
-                    <!-- Giocatori del team inferiore -->
+                    <!-- Contenitore dinamico per i giocatori del team inferiore -->
                 </div>
                 <button class="join-team-btn" id="join-bottom-btn" onclick="joinTeam('bottom')">
                     Unisciti al Team Sud
@@ -60,11 +64,11 @@
             </div>
         </div>
 
-        <!-- Sezione Ready -->
+        <!-- SEZIONE READY: Mostra stato di preparazione e controlli di avvio -->
         <div class="ready-section">
             <h2>Stato Preparazione</h2>
             <div class="ready-status" id="ready-status">
-                <!-- Status giocatori -->
+                <!-- Status dinamico per ogni giocatore -->
             </div>
             
             <div id="waiting-area">
@@ -72,6 +76,7 @@
                     Aspettando che tutti i giocatori scelgano team e ruolo...
                 </div>
                 
+                <!-- PULSANTE AVVIO: Visibile solo all'host quando tutti sono pronti -->
                 <button id="start-game-final" onclick="startFinalGame()" style="display: none;">
                     🎮 Inizia Battaglia!
                 </button>
@@ -84,10 +89,15 @@
     </div>
 
     <script type="module">
+        // ============================================================================
+        // IMPORTAZIONI FIREBASE: Moduli necessari per database real-time
+        // ============================================================================
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
         import { getDatabase, ref, set, onValue, update, onDisconnect, serverTimestamp, get } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
 
-        // Configurazione Firebase
+        // ============================================================================
+        // CONFIGURAZIONE FIREBASE: Credenziali per connessione al database
+        // ============================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyAaFw4nAcPcFrrZACMcLoVc-0rPybpwyYU",
             authDomain: "maprace-68ba8.firebaseapp.com",
@@ -98,17 +108,22 @@
             appId: "1:554782611402:web:d70f20cfe3d2cff640e133"
         };
 
-        let app, database;
-        let currentRoom = null;
-        let myPlayerId = null;
-        let myUsername = '';
-        let myTeam = null;
-        let myRole = null;
-        let presenceRef = null;
-        let heartbeatInterval = null;
-        let isPageVisible = true;
+        // ============================================================================
+        // VARIABILI GLOBALI: Stato dell'applicazione e riferimenti Firebase
+        // ============================================================================
+        let app, database;                    // Istanze Firebase
+        let currentRoom = null;               // Codice stanza corrente
+        let myPlayerId = null;               // ID univoco del giocatore
+        let myUsername = '';                 // Nome utente del giocatore
+        let myTeam = null;                   // Team assegnato ('top' o 'bottom')
+        let myRole = null;                   // Ruolo assegnato ('constructor' o 'bomber')
+        let presenceRef = null;              // Riferimento Firebase per presenza
+        let heartbeatInterval = null;        // Intervallo per heartbeat di connessione
+        let isPageVisible = true;            // Flag visibilità pagina (per ottimizzazione)
 
-        // Inizializza Firebase
+        // ============================================================================
+        // INIZIALIZZAZIONE FIREBASE: Setup connessione database
+        // ============================================================================
         async function initFirebase() {
             try {
                 app = initializeApp(firebaseConfig);
@@ -121,17 +136,21 @@
             }
         }
 
-        // Ottieni parametri URL
+        // ============================================================================
+        // PARSING URL: Estrae parametri dalla query string
+        // ============================================================================
         function getUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
             return {
-                roomCode: urlParams.get('roomCode'),
-                playerId: urlParams.get('playerId'),
-                username: urlParams.get('username')
+                roomCode: urlParams.get('roomCode'),    // Codice stanza
+                playerId: urlParams.get('playerId'),    // ID giocatore
+                username: urlParams.get('username')     // Nome utente
             };
         }
 
-        // Setup sistema di presenza e heartbeat
+        // ============================================================================
+        // SISTEMA DI PRESENZA: Gestisce connessioni/disconnessioni giocatori
+        // ============================================================================
         function setupPresenceSystem() {
             if (!database || !currentRoom || !myPlayerId) {
                 console.error('❌ Parametri mancanti per il sistema di presenza');
@@ -139,20 +158,20 @@
             }
 
             try {
-                // Riferimento per la presenza del player
+                // SETUP PRESENZA: Riferimento Firebase per questo giocatore
                 presenceRef = ref(database, `games/${currentRoom}/players/${myPlayerId}/presence`);
 
-                // Imposta la presenza come online
+                // MARCATURA ONLINE: Imposta stato online con timestamp
                 set(presenceRef, {
                     online: true,
                     lastSeen: Date.now()
                 });
 
-                // Configura Firebase onDisconnect per pulire automaticamente
+                // AUTO-CLEANUP: Firebase rimuove automaticamente il player alla disconnessione
                 const playerRef = ref(database, `games/${currentRoom}/players/${myPlayerId}`);
                 onDisconnect(playerRef).remove();
 
-                // Setup heartbeat ogni 30 secondi
+                // HEARTBEAT: Aggiorna presenza ogni 30 secondi per confermare connessione
                 heartbeatInterval = setInterval(() => {
                     if (isPageVisible && database && presenceRef) {
                         set(presenceRef, {
@@ -164,7 +183,7 @@
                     }
                 }, 30000);
 
-                // Monitora i player disconnessi (heartbeat più vecchio di 2 minuti)
+                // MONITOR DISCONNESSIONI: Avvia controllo giocatori inattivi
                 startDisconnectionMonitor();
 
                 console.log('✅ Sistema di presenza configurato');
@@ -173,11 +192,13 @@
             }
         }
 
-        // Monitora player disconnessi tramite heartbeat
+        // ============================================================================
+        // MONITOR DISCONNESSIONI: Rileva e rimuove giocatori inattivi
+        // ============================================================================
         function startDisconnectionMonitor() {
             const playersRef = ref(database, `games/${currentRoom}/players`);
             
-            // Controlla ogni minuto se ci sono player inattivi
+            // CONTROLLO PERIODICO: Ogni minuto verifica heartbeat dei giocatori
             setInterval(async () => {
                 try {
                     const snapshot = await get(playersRef);
@@ -185,14 +206,16 @@
 
                     const players = snapshot.val();
                     const now = Date.now();
-                    const disconnectionThreshold = 120000; // 2 minuti
+                    const disconnectionThreshold = 120000; // 2 minuti di inattività
 
+                    // VERIFICA OGNI GIOCATORE: Controlla timestamp ultimo heartbeat
                     for (const [playerId, player] of Object.entries(players)) {
                         if (playerId === myPlayerId) continue; // Non controllare se stesso
 
                         const lastSeen = player.presence?.lastSeen || 0;
                         const isInactive = (now - lastSeen) > disconnectionThreshold;
 
+                        // RIMOZIONE AUTOMATICA: Se inattivo da troppo tempo
                         if (isInactive && player.presence?.online) {
                             console.log(`🔄 Player inattivo rilevato: ${player.username} (${playerId})`);
                             await removeDisconnectedPlayer(playerId, player.username);
@@ -204,29 +227,27 @@
             }, 60000); // Controlla ogni minuto
         }
 
-        // Setup eventi del browser per rilevare disconnessioni
+        // ============================================================================
+        // EVENTI BROWSER: Gestisce chiusura pagina e cambio visibilità
+        // ============================================================================
         function setupBrowserEvents() {
-            // Evento quando la pagina sta per essere chiusa
-            window.addEventListener('beforeunload', handlePageExit);
-            
-            // Evento quando la pagina diventa invisibile/visibile
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-            
-            // Evento quando la pagina viene nascosta (più affidabile di beforeunload)
-            window.addEventListener('pagehide', handlePageExit);
-            
-            // Evento quando l'utente naviga via dalla pagina
-            window.addEventListener('unload', handlePageExit);
+            // EVENTI CHIUSURA: Diversi trigger per intercettare l'uscita dell'utente
+            window.addEventListener('beforeunload', handlePageExit);      // Prima della chiusura
+            document.addEventListener('visibilitychange', handleVisibilityChange); // Cambio tab
+            window.addEventListener('pagehide', handlePageExit);          // Nascondere pagina
+            window.addEventListener('unload', handlePageExit);            // Scaricamento pagina
 
             console.log('✅ Eventi browser configurati');
         }
 
-        // Gestisce il cambio di visibilità della pagina
+        // ============================================================================
+        // GESTIONE VISIBILITÀ: Ottimizza heartbeat quando pagina nascosta
+        // ============================================================================
         function handleVisibilityChange() {
             isPageVisible = !document.hidden;
             
             if (isPageVisible) {
-                // Pagina tornata visibile - aggiorna heartbeat
+                // PAGINA VISIBILE: Riprende heartbeat normale
                 if (database && presenceRef) {
                     set(presenceRef, {
                         online: true,
@@ -241,17 +262,18 @@
             }
         }
 
-        // Gestisce l'uscita dalla pagina
+        // ============================================================================
+        // GESTIONE USCITA: Pulizia quando utente lascia la pagina
+        // ============================================================================
         function handlePageExit(event) {
             console.log('🚪 Utente sta lasciando la pagina');
             
-            // Pulizia immediata (sincrona per beforeunload)
+            // PULIZIA IMMEDIATA: Rimuove giocatore dal database
             if (database && currentRoom && myPlayerId) {
                 try {
-                    // Usa navigator.sendBeacon per invio affidabile durante l'uscita
                     const playerRef = ref(database, `games/${currentRoom}/players/${myPlayerId}`);
                     
-                    // Prova a rimuovere immediatamente (può fallire durante beforeunload)
+                    // RIMOZIONE SINCRONA: Usa remove per pulizia immediata
                     remove(playerRef).catch(error => {
                         console.error('❌ Errore rimozione immediata:', error);
                     });
@@ -262,7 +284,9 @@
             }
         }
 
-        // Rimuove un player disconnesso dal database
+        // ============================================================================
+        // RIMOZIONE PLAYER DISCONNESSO: Cleanup database per utenti inattivi
+        // ============================================================================
         async function removeDisconnectedPlayer(playerId, username) {
             try {
                 const playerRef = ref(database, `games/${currentRoom}/players/${playerId}`);
@@ -271,7 +295,7 @@
                 console.log(`✅ Player rimosso: ${username} (${playerId})`);
                 showNotification(`👋 ${username} ha lasciato la stanza`, 'info');
                 
-                // Controlla se la stanza è vuota dopo la rimozione
+                // CONTROLLO STANZA VUOTA: Verifica se rimangono giocatori
                 await checkEmptyRoom();
                 
             } catch (error) {
@@ -279,15 +303,18 @@
             }
         }
 
-        // Controlla se la stanza è vuota e la pulisce
+        // ============================================================================
+        // CONTROLLO STANZA VUOTA: Rimuove stanze senza giocatori dal database
+        // ============================================================================
         async function checkEmptyRoom() {
             try {
                 const playersSnapshot = await get(ref(database, `games/${currentRoom}/players`));
                 
+                // STANZA VUOTA: Nessun giocatore rimasto
                 if (!playersSnapshot.exists() || Object.keys(playersSnapshot.val()).length === 0) {
                     console.log('🧹 Stanza vuota - pulizia in corso...');
                     
-                    // Rimuovi l'intera stanza se vuota
+                    // PULIZIA COMPLETA: Rimuove intera stanza dal database
                     await remove(ref(database, `games/${currentRoom}`));
                     console.log('✅ Stanza vuota rimossa dal database');
                 }
@@ -296,14 +323,18 @@
             }
         }
 
-        // Pulizia quando si lascia volontariamente
+        // ============================================================================
+        // PULIZIA VOLONTARIA: Cleanup quando utente lascia intenzionalmente
+        // ============================================================================
         async function cleanupOnExit() {
             try {
+                // STOP HEARTBEAT: Ferma l'intervallo di presenza
                 if (heartbeatInterval) {
                     clearInterval(heartbeatInterval);
                     heartbeatInterval = null;
                 }
 
+                // RIMOZIONE GIOCATORE: Elimina dal database
                 if (database && currentRoom && myPlayerId) {
                     const playerRef = ref(database, `games/${currentRoom}/players/${myPlayerId}`);
                     await remove(playerRef);
@@ -314,8 +345,11 @@
             }
         }
 
-        // Inizializzazione pagina
+        // ============================================================================
+        // INIZIALIZZAZIONE PAGINA: Setup iniziale dell'applicazione
+        // ============================================================================
         async function initPage() {
+            // VALIDAZIONE PARAMETRI: Controlla che tutti i dati necessari siano presenti
             const params = getUrlParams();
             
             if (!params.roomCode || !params.playerId || !params.username) {
@@ -324,28 +358,34 @@
                 return;
             }
 
+            // SETUP VARIABILI GLOBALI: Assegna parametri estratti dall'URL
             currentRoom = params.roomCode;
             myPlayerId = params.playerId;
             myUsername = params.username;
 
+            // AGGIORNAMENTO UI: Mostra codice stanza nell'interfaccia
             document.getElementById('room-code-display').textContent = currentRoom;
 
+            // INIZIALIZZAZIONE SISTEMI: Avvia Firebase e listener
             if (await initFirebase()) {
-                setupRealtimeListeners();
-                setupPresenceSystem();
-                setupBrowserEvents();
+                setupRealtimeListeners();    // Listener per aggiornamenti real-time
+                setupPresenceSystem();       // Sistema di presenza/heartbeat
+                setupBrowserEvents();        // Gestione eventi browser
             }
         }
 
-        // Setup listener Firebase
+        // ============================================================================
+        // LISTENER REAL-TIME: Ascolta cambiamenti nel database Firebase
+        // ============================================================================
         function setupRealtimeListeners() {
             const roomRef = ref(database, `games/${currentRoom}`);
             
+            // LISTENER PRINCIPALE: Reagisce a tutti i cambiamenti nella stanza
             onValue(roomRef, (snapshot) => {
                 const data = snapshot.val();
                 
+                // STANZA ELIMINATA: Reindirizza se la stanza non esiste più
                 if (!data) {
-                    // La stanza non esiste più
                     console.log('⚠️ La stanza non esiste più');
                     alert('La stanza è stata chiusa. Tornando alla lobby...');
                     window.location.href = '../index.html';
@@ -359,16 +399,16 @@
                     playerCount: data.players ? Object.keys(data.players).length : 0
                 });
                 
-                // Controlla se il gioco è stato avviato
+                // GIOCO AVVIATO: Controlla se si deve passare alla fase di gioco
                 if (data.gamePhase === 'playing' && data.gameStartedFinal) {
                     console.log('🎮 Gioco avviato! Reindirizzamento in corso...');
                     
-                    // Verifica che abbiamo tutti i dati necessari
+                    // VALIDAZIONE DATI: Verifica che i dati del giocatore esistano
                     if (!data.players || !data.players[myPlayerId]) {
                         console.error('❌ Dati player mancanti durante il reindirizzamento');
                         console.log('Available players:', Object.keys(data.players || {}));
                         
-                        // Riprova dopo un breve delay
+                        // RETRY MECHANISM: Riprova dopo un breve delay
                         setTimeout(() => {
                             console.log('🔄 Tentativo di re-fetch dati player...');
                             get(ref(database, `games/${currentRoom}`)).then(retrySnapshot => {
@@ -388,7 +428,7 @@
                     return; // Non aggiornare UI se stiamo reindirizzando
                 }
                 
-                // Aggiorna UI normale se non stiamo reindirizzando
+                // AGGIORNAMENTO UI NORMALE: Se non stiamo reindirizzando
                 updateUI(data);
             }, (error) => {
                 console.error('❌ Errore listener Firebase:', error);
@@ -396,11 +436,14 @@
             });
         }
 
-        // Gestisce il reindirizzamento quando il gioco viene avviato
+        // ============================================================================
+        // GESTIONE AVVIO GIOCO: Reindirizza alla pagina di gioco quando inizia
+        // ============================================================================
         function handleGameStartRedirect(gameData) {
             const players = gameData.players || {};
             const currentPlayer = players[myPlayerId];
             
+            // VALIDAZIONE GIOCATORE: Verifica che il giocatore corrente esista
             if (!currentPlayer) {
                 console.error('❌ Player corrente non trovato nei dati del gioco');
                 console.log('Debug - My Player ID:', myPlayerId);
@@ -413,7 +456,7 @@
             console.log('🎮 Gioco avviato - preparazione reindirizzamento...');
             console.log('Debug - Current player data:', currentPlayer);
             
-            // Verifica che il player abbia team e ruolo
+            // VALIDAZIONE SETUP: Verifica che il giocatore abbia team e ruolo
             if (!currentPlayer.team || !currentPlayer.role) {
                 console.error('❌ Player non ha team o ruolo assegnato');
                 alert('Errore: team o ruolo mancante. Tornando alla lobby...');
@@ -421,16 +464,16 @@
                 return;
             }
             
-            // Mostra messaggio di caricamento
+            // UI LOADING: Mostra schermata di caricamento
             showGameStartingNotification();
             
-            // Pulisci il sistema di presenza prima del reindirizzamento
+            // PULIZIA PRESENZA: Ferma heartbeat prima del reindirizzamento
             if (heartbeatInterval) {
                 clearInterval(heartbeatInterval);
                 heartbeatInterval = null;
             }
             
-            // CORREZIONE: Path corretto per board.php (stesso livello di preparation.php)
+            // COSTRUZIONE URL: Prepara tutti i parametri per la pagina di gioco
             const gameUrl = new URL('../game/board.php', window.location.href);
             gameUrl.searchParams.set('roomCode', currentRoom);
             gameUrl.searchParams.set('playerId', myPlayerId);
@@ -441,17 +484,19 @@
             
             console.log(`🚀 Reindirizzamento a: ${gameUrl.toString()}`);
             
-            // Reindirizzamento immediato per evitare race conditions
+            // REINDIRIZZAMENTO IMMEDIATO: Per evitare race conditions
             window.location.href = gameUrl.toString();
         }
 
-        // Mostra notifica di avvio gioco
+        // ============================================================================
+        // NOTIFICA AVVIO GIOCO: Overlay di caricamento per il passaggio al gioco
+        // ============================================================================
         function showGameStartingNotification() {
-            // Rimuovi notifiche esistenti
+            // RIMOZIONE NOTIFICHE: Pulisce notifiche esistenti
             const existingNotifications = document.querySelectorAll('.notification, .game-starting-overlay');
             existingNotifications.forEach(notif => notif.remove());
             
-            // Crea overlay di caricamento
+            // CREAZIONE OVERLAY: Schermata di caricamento a schermo intero
             const overlay = document.createElement('div');
             overlay.className = 'game-starting-overlay';
             overlay.style.cssText = `
@@ -471,6 +516,7 @@
                 text-align: center;
             `;
             
+            // CONTENUTO OVERLAY: Messaggio e spinner di caricamento
             overlay.innerHTML = `
                 <div class="game-starting-content" style="
                     background: linear-gradient(145deg, rgba(139, 69, 19, 0.95) 0%, rgba(101, 67, 33, 0.9) 100%);
@@ -508,7 +554,7 @@
             
             document.body.appendChild(overlay);
             
-            // Aggiungi stili di animazione se non esistono già
+            // STILI ANIMAZIONE: Aggiunge CSS per le animazioni se non esistono
             if (!document.getElementById('game-start-animations')) {
                 const style = document.createElement('style');
                 style.id = 'game-start-animations';
@@ -526,15 +572,15 @@
                 document.head.appendChild(style);
             }
             
-            // Timeout di sicurezza per il reindirizzamento
+            // TIMEOUT SICUREZZA: Fallback se il reindirizzamento non avviene
             setTimeout(() => {
                 if (overlay.parentNode) {
                     console.warn('⚠️ Reindirizzamento non avvenuto in tempo, forzando...');
-                    // Fallback: prova a ricaricare i dati e reindirizzare
+                    // FALLBACK: Prova a ricaricare i dati e reindirizzare forzatamente
                     get(ref(database, `games/${currentRoom}`)).then(snapshot => {
                         const data = snapshot.val();
                         if (data && data.gamePhase === 'playing') {
-                            // Forza il reindirizzamento
+                            // REINDIRIZZAMENTO FORZATO: Costruisce nuovamente l'URL
                             const gameUrl = new URL('../game/board.php', window.location.href);
                             gameUrl.searchParams.set('roomCode', currentRoom);
                             gameUrl.searchParams.set('playerId', myPlayerId);
@@ -556,6 +602,9 @@
             }, 8000); // 8 secondi di timeout
         }
 
+        // ============================================================================
+        // AGGIORNAMENTO UI: Aggiorna l'interfaccia utente con i dati Firebase
+        // ============================================================================
         function updateUI(roomData) {
             const players = roomData.players || {};
             
@@ -563,69 +612,73 @@
             console.log('Debug - My Player ID:', myPlayerId);
             console.log('Debug - All players:', players);
             
-            // Reset team containers
+            // RESET CONTAINERS: Pulisce le liste dei giocatori
             document.getElementById('team-top-players').innerHTML = '';
             document.getElementById('team-bottom-players').innerHTML = '';
             
+            // CONTATORI: Inizializza contatori per team e stato
             let teamTopCount = 0;
             let teamBottomCount = 0;
             let allReady = true;
             let totalPlayers = 0;
 
-            // Organizza giocatori per team - usa Object.entries per avere accesso alle chiavi
+            // ORGANIZZAZIONE GIOCATORI: Distribuisce giocatori per team
             Object.entries(players).forEach(([playerId, player]) => {
                 totalPlayers++;
                 console.log(`Debug - Processing player: ${player.name}, Firebase Key: ${playerId}`);
                 
-                // Aggiungi l'ID Firebase al player object per il confronto
+                // IDENTIFICATORE FIREBASE: Aggiunge ID per confronti
                 player.firebaseId = playerId;
                 
+                // CREAZIONE CARD: Genera elemento UI per il giocatore
                 const playerCard = createPlayerCard(player);
                 
+                // ASSEGNAZIONE TEAM: Posiziona il giocatore nel team corretto
                 if (player.team === 'top') {
                     document.getElementById('team-top-players').appendChild(playerCard);
                     teamTopCount++;
                 } else if (player.team === 'bottom') {
                     document.getElementById('team-bottom-players').appendChild(playerCard);
                     teamBottomCount++;
-                } else {
-                    // Giocatore senza team - mostrato in una zona neutra se necessario
                 }
 
-                // Controlla se tutti sono pronti (hanno team e ruolo)
+                // CONTROLLO READY: Verifica se tutti i giocatori sono pronti
                 if (!player.team || !player.role) {
                     allReady = false;
                 }
             });
 
-            // Aggiorna contatori
+            // AGGIORNAMENTO CONTATORI: Mostra numero giocatori per team
             document.getElementById('team-top-count').textContent = teamTopCount;
             document.getElementById('team-bottom-count').textContent = teamBottomCount;
 
-            // Aggiorna pulsanti join team
+            // GESTIONE PULSANTI JOIN: Mostra/nasconde pulsanti unione team
             const joinTopBtn = document.getElementById('join-top-btn');
             const joinBottomBtn = document.getElementById('join-bottom-btn');
             const currentPlayer = players[myPlayerId];
             
             console.log('Debug - Current player from Firebase:', currentPlayer);
             
+            // LOGICA PULSANTI: Se già in un team, nasconde pulsanti
             if (currentPlayer && currentPlayer.team) {
                 joinTopBtn.style.display = 'none';
                 joinBottomBtn.style.display = 'none';
             } else {
+                // CONTROLLO LIMITI: Disabilita se team pieno (max 2 giocatori)
                 joinTopBtn.disabled = teamTopCount >= 2;
                 joinBottomBtn.disabled = teamBottomCount >= 2;
                 joinTopBtn.style.display = teamTopCount >= 2 ? 'none' : 'block';
                 joinBottomBtn.style.display = teamBottomCount >= 2 ? 'none' : 'block';
             }
 
-            // Aggiorna status ready
+            // AGGIORNAMENTO STATUS: Mostra stato di preparazione di ogni giocatore
             updateReadyStatus(players);
 
-            // Mostra pulsante start se tutti pronti e utente è host
+            // CONTROLLO AVVIO: Determina se mostrare il pulsante di avvio
             const isHost = currentPlayer && currentPlayer.isHost;
             const startBtn = document.getElementById('start-game-final');
             
+            // LOGICA AVVIO: Tutti pronti + minimo 2 giocatori + utente è host
             if (allReady && totalPlayers >= 2 && isHost) {
                 startBtn.style.display = 'block';
                 document.getElementById('waiting-message').textContent = 'Tutti pronti! Puoi avviare la battaglia!';
@@ -637,23 +690,26 @@
             }
         }
 
-        // Crea card giocatore
+        // ============================================================================
+        // CREAZIONE CARD GIOCATORE: Genera elemento UI per ogni giocatore
+        // ============================================================================
         function createPlayerCard(player) {
             const card = document.createElement('div');
             card.className = 'player-card';
             
-            // Fix: usa il Firebase ID per il confronto
+            // IDENTIFICAZIONE UTENTE CORRENTE: Confronta con l'ID Firebase
             const isCurrentUser = player.firebaseId === myPlayerId;
             
             if (isCurrentUser) {
                 card.classList.add('current-user');
             }
             
-            // Indicatore di connessione
+            // INDICATORE CONNESSIONE: Verifica se il giocatore è online
             const isOnline = player.presence?.online && (Date.now() - (player.presence?.lastSeen || 0)) < 120000;
             
             console.log(`Debug - Player: ${player.name}, Firebase ID: ${player.firebaseId}, My ID: ${myPlayerId}, Is Current: ${isCurrentUser}`);
             
+            // GENERAZIONE HTML: Struttura completa della card giocatore
             card.innerHTML = `
                 <div class="player-header">
                     <div class="player-name-section">
@@ -670,6 +726,7 @@
                     </div>
                     <div class="role-section">
                         ${isCurrentUser ? `
+                            <!-- DROPDOWN RUOLO: Solo per l'utente corrente -->
                             <select class="role-dropdown-inline ${player.role ? 'has-selection' : ''} ${player.role === 'constructor' ? 'constructor-selected' : ''} ${player.role === 'bomber' ? 'bomber-selected' : ''}" 
                                     onchange="selectRole(this.value)" 
                                     id="role-select-${player.firebaseId}">
@@ -678,6 +735,7 @@
                                 <option value="bomber" ${player.role === 'bomber' ? 'selected' : ''}>💣 Bombardiere</option>
                             </select>
                         ` : `
+                            <!-- DISPLAY RUOLO: Per altri giocatori, solo visualizzazione -->
                             <div class="role-display ${player.role ? 'role-set' : 'role-empty'}">
                                 ${player.role ? (player.role === 'constructor' ? '🧱 Costruttore' : '💣 Bombardiere') : '⏳ In attesa...'}
                             </div>
@@ -685,6 +743,7 @@
                     </div>
                 </div>
                 ${player.role ? `
+                    <!-- DESCRIZIONE RUOLO: Spiega le capacità del ruolo selezionato -->
                     <div class="role-description">
                         ${player.role === 'constructor' ? 
                             '📝 Può costruire muri e difese per proteggere il team' : 
@@ -697,18 +756,22 @@
             return card;
         }
 
-        // Aggiorna status ready
+        // ============================================================================
+        // AGGIORNAMENTO STATUS READY: Mostra stato preparazione di ogni giocatore
+        // ============================================================================
         function updateReadyStatus(players) {
             const container = document.getElementById('ready-status');
             container.innerHTML = '';
 
+            // ORDINAMENTO GIOCATORI: Per ordine di ingresso nella stanza
             Object.values(players)
                 .sort((a, b) => a.joinedAt - b.joinedAt)
                 .forEach(player => {
                     const statusDiv = document.createElement('div');
-                    const isReady = player.team && player.role;
+                    const isReady = player.team && player.role;  // Pronto = ha team E ruolo
                     const isOnline = player.presence?.online && (Date.now() - (player.presence?.lastSeen || 0)) < 120000;
                     
+                    // STILI STATUS: Colori e classi per stato giocatore
                     statusDiv.className = `player-ready-status ${isReady ? 'ready' : 'not-ready'} ${!isOnline ? 'disconnected' : ''}`;
                     statusDiv.innerHTML = `
                         <strong>${player.username} ${!isOnline ? '🔴' : '🟢'}</strong>
@@ -727,15 +790,17 @@
                 });
         }
 
-        
-        // Unisciti a un team
+        // ============================================================================
+        // UNIONE TEAM: Gestisce l'assegnazione di un giocatore a un team
+        // ============================================================================
         window.joinTeam = async function(team) {
             if (!database || !currentRoom || !myPlayerId) return;
 
             try {
-                // CORREZIONE: Aggiungi await prima di isHostCheck
+                // CONTROLLO HOST: Verifica se l'utente è l'host della stanza
                 const isHostResult = await isHostCheck();
 
+                // AGGIORNAMENTO DATABASE: Salva dati giocatore con team assegnato
                 await update(ref(database, `games/${currentRoom}/players/${myPlayerId}`), {
                     username: myUsername,
                     team: team,
@@ -746,9 +811,11 @@
                         lastSeen: Date.now()
                     }
                 });
+                
+                // AGGIORNAMENTO LOCALE: Salva team nella variabile locale
                 myTeam = team;
                 
-                // Effetti visivi e sonori
+                // FEEDBACK UTENTE: Effetti visivi e sonori per conferma
                 playSound('success');
                 const teamName = team === 'top' ? '🔵 Team Nord' : '🔴 Team Sud';
                 showNotification(`⚔️ Ti sei unito al ${teamName}!`, 'success');
@@ -760,7 +827,9 @@
             }
         }
 
-        // Controllo se il player è host della stanza
+        // ============================================================================
+        // CONTROLLO HOST: Verifica se il giocatore corrente è l'host della stanza
+        // ============================================================================
         async function isHostCheck() {
             try {
                 const room = await get(ref(database, `games/${currentRoom}`));
@@ -772,13 +841,13 @@
                 
                 const gameData = room.val();
                 
-                // Verifica che startedBy esista
+                // VERIFICA CAMPO: Controlla che startedBy esista nei dati
                 if (!gameData.startedBy) {
                     console.log('❌ startedBy non trovato nei dati della stanza');
                     return false;
                 }
                 
-                // CORREZIONE: usa startedBy (non starterBy)
+                // CONFRONTO ID: Confronta ID giocatore con quello che ha creato la stanza
                 const isHost = myPlayerId === gameData.startedBy;
                 console.log(`🔍 Check host: ${myPlayerId} === ${gameData.startedBy} = ${isHost}`);
                 
@@ -790,14 +859,17 @@
             }
         }
 
-        // Seleziona ruolo
+        // ============================================================================
+        // SELEZIONE RUOLO: Gestisce la scelta del ruolo da parte del giocatore
+        // ============================================================================
         window.selectRole = async function(role) {
             if (!database || !currentRoom || !myPlayerId) return;
 
-            // Se l'utente seleziona l'opzione placeholder, non fare nulla
+            // VALIDAZIONE: Se nessun ruolo selezionato, non fare nulla
             if (!role) return;
 
             try {
+                // AGGIORNAMENTO DATABASE: Salva ruolo selezionato
                 await update(ref(database, `games/${currentRoom}/players/${myPlayerId}`), {
                     role: role,
                     presence: {
@@ -805,23 +877,25 @@
                         lastSeen: Date.now()
                     }
                 });
+                
+                // AGGIORNAMENTO LOCALE: Salva ruolo nella variabile locale
                 myRole = role;
                 
-                // Aggiorna immediatamente gli stili del dropdown
+                // AGGIORNAMENTO UI IMMEDIATO: Modifica stili dropdown senza aspettare Firebase
                 const dropdown = document.getElementById(`role-select-${myPlayerId}`);
                 if (dropdown) {
-                    // Reset classi
+                    // RESET CLASSI: Pulisce classi precedenti
                     dropdown.classList.remove('constructor-selected', 'bomber-selected');
                     dropdown.classList.add('has-selection');
                     
-                    // Aggiungi classe specifica per il ruolo
+                    // CLASSE SPECIFICA: Aggiunge classe per il ruolo selezionato
                     if (role === 'constructor') {
                         dropdown.classList.add('constructor-selected');
                     } else if (role === 'bomber') {
                         dropdown.classList.add('bomber-selected');
                     }
                     
-                    // Effetto di conferma visiva più delicato per il dropdown inline
+                    // ANIMAZIONE CONFERMA: Breve effetto di scala per feedback
                     dropdown.style.transform = 'scale(1.02)';
                     setTimeout(() => {
                         dropdown.style.transform = 'scale(1)';
@@ -830,7 +904,7 @@
                 
                 console.log(`✅ Ruolo selezionato: ${role}`);
                 
-                // Effetto sonoro e messaggio di conferma
+                // FEEDBACK UTENTE: Suono e notifica di conferma
                 playSound('success');
                 showNotification(`🎭 Ruolo ${role === 'constructor' ? '🧱 Costruttore' : '💣 Bombardiere'} selezionato!`, 'success');
                 
@@ -838,7 +912,7 @@
                 console.error('❌ Errore selezione ruolo:', error);
                 alert('Errore durante la selezione del ruolo');
                 
-                // Reset dropdown in caso di errore
+                // ROLLBACK UI: Ripristina dropdown in caso di errore
                 const dropdown = document.getElementById(`role-select-${myPlayerId}`);
                 if (dropdown) {
                     dropdown.value = myRole || '';
@@ -846,13 +920,15 @@
             }
         }
 
-        // Avvia gioco finale
+        // ============================================================================
+        // AVVIO GIOCO FINALE: Gestisce l'avvio della battaglia (solo host)
+        // ============================================================================
         window.startFinalGame = async function() {
             if (!database || !currentRoom) return;
 
             console.log('🎮 Avvio del gioco finale...');
             
-            // Verifica di essere l'host
+            // VERIFICA HOST: Solo l'host può avviare il gioco
             const isHost = await isHostCheck();
             if (!isHost) {
                 console.log('❌ Solo l\'host può avviare il gioco');
@@ -860,7 +936,7 @@
                 return;
             }
 
-            // Verifica che tutti i giocatori siano pronti
+            // VERIFICA CONDIZIONI: Controlla che tutti i giocatori siano pronti
             const roomSnapshot = await get(ref(database, `games/${currentRoom}`));
             if (!roomSnapshot.exists()) {
                 showNotification('❌ Errore: stanza non trovata', 'error');
@@ -871,20 +947,20 @@
             const players = roomData.players || {};
             const playersList = Object.values(players);
             
-            // Verifica che ci siano almeno 2 giocatori
+            // CONTROLLO MINIMO GIOCATORI: Almeno 2 giocatori necessari
             if (playersList.length < 2) {
                 showNotification('❌ Servono almeno 2 giocatori per iniziare', 'error');
                 return;
             }
             
-            // Verifica che tutti abbiano team e ruolo
+            // CONTROLLO PREPARAZIONE: Tutti devono avere team e ruolo
             const allReady = playersList.every(player => player.team && player.role);
             if (!allReady) {
                 showNotification('❌ Non tutti i giocatori sono pronti', 'error');
                 return;
             }
 
-            // Mostra messaggio di conferma prima dell'avvio
+            // UI FEEDBACK: Mostra stato di avvio sul pulsante
             const startBtn = document.getElementById('start-game-final');
             const originalText = startBtn.textContent;
             startBtn.disabled = true;
@@ -892,15 +968,16 @@
             startBtn.style.background = 'linear-gradient(145deg, #228b22, #32cd32)';
 
             try {
-                // Aggiorna lo stato del gioco nel database
+                // TIMESTAMP AVVIO: Marca temporale per sincronizzazione
                 const gameStartTime = Date.now();
                 
+                // AGGIORNAMENTO STATO GIOCO: Cambia fase a 'playing'
                 await update(ref(database, `games/${currentRoom}`), {
                     gamePhase: 'playing',
                     gameStartedFinal: gameStartTime,
                     gameStatus: 'active',
-                    startedBy: myPlayerId, // Assicurati che sia registrato chi ha avviato
-                    // Aggiungi metadati utili per il debugging
+                    startedBy: myPlayerId,
+                    // METADATI DEBUG: Informazioni utili per troubleshooting
                     startedAt: new Date(gameStartTime).toISOString(),
                     playerCount: playersList.length
                 });
@@ -908,16 +985,15 @@
                 console.log('✅ Stato gioco aggiornato con successo');
                 console.log('🔄 Tutti i giocatori verranno reindirizzati automaticamente...');
                 
-                // Mostra notifica di successo
+                // NOTIFICA SUCCESSO: Conferma avvio riuscito
                 showNotification('🎮 Battaglia avviata! Reindirizzamento in corso...', 'success');
                 
-                // Il reindirizzamento sarà gestito automaticamente dal listener Firebase
-                // Il listener si attiverà per tutti i client (incluso l'host)
+                // REINDIRIZZAMENTO AUTOMATICO: Il listener Firebase gestirà il redirect
                 
             } catch (error) {
                 console.error('❌ Errore avvio gioco:', error);
                 
-                // Ripristina il pulsante in caso di errore
+                // RIPRISTINO PULSANTE: In caso di errore, torna allo stato normale
                 startBtn.disabled = false;
                 startBtn.textContent = originalText;
                 startBtn.style.background = '';
@@ -926,22 +1002,27 @@
             }
         }
 
-        // Torna alla lobby
+        // ============================================================================
+        // RITORNO LOBBY: Gestisce l'uscita volontaria dalla stanza
+        // ============================================================================
         window.goBackToLobby = async function() {
             if (confirm('Sei sicuro di voler tornare alla lobby?')) {
-                await cleanupOnExit();
-                window.location.href = '../index.html';
+                await cleanupOnExit();                    // Pulizia database
+                window.location.href = '../index.html';  // Reindirizzamento
             }
         }
 
-        // Mostra notifica temporanea
+        // ============================================================================
+        // SISTEMA NOTIFICHE: Mostra messaggi temporanei all'utente
+        // ============================================================================
         function showNotification(message, type = 'info') {
-            // Rimuovi notifiche esistenti
+            // RIMOZIONE PRECEDENTI: Evita sovrapposizione notifiche
             const existingNotification = document.querySelector('.notification');
             if (existingNotification) {
                 existingNotification.remove();
             }
 
+            // CREAZIONE NOTIFICA: Elemento floating con stili personalizzati
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.style.cssText = `
@@ -964,6 +1045,7 @@
                 text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
             `;
 
+            // STILI SPECIFICI: Colori diversi per tipo di notifica
             if (type === 'success') {
                 notification.style.borderColor = '#228b22';
                 notification.style.background = 'linear-gradient(145deg, rgba(34, 139, 34, 0.3) 0%, rgba(139, 69, 19, 0.95) 50%, rgba(101, 67, 33, 0.9) 100%)';
@@ -977,12 +1059,12 @@
             notification.textContent = message;
             document.body.appendChild(notification);
 
-            // Animazione di entrata
+            // ANIMAZIONE ENTRATA: Slide da destra
             requestAnimationFrame(() => {
                 notification.style.transform = 'translateX(0)';
             });
 
-            // Auto rimozione dopo 3 secondi
+            // AUTO-RIMOZIONE: Scompare dopo 3 secondi
             setTimeout(() => {
                 notification.style.transform = 'translateX(400px)';
                 setTimeout(() => {
@@ -993,9 +1075,11 @@
             }, 3000);
         }
 
-        // Aggiungi effetti sonori (opzionale)
+        // ============================================================================
+        // EFFETTI SONORI: Genera suoni semplici per feedback utente
+        // ============================================================================
         function playSound(type) {
-            // Crea un suono semplice usando Web Audio API
+            // AUDIO SINTETICO: Usa Web Audio API per suoni basilari
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
@@ -1004,41 +1088,49 @@
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
 
+                // TIPI DI SUONO: Frequenze diverse per azioni diverse
                 if (type === 'success') {
-                    // Suono di conferma (due note crescenti)
+                    // SUONO CONFERMA: Due note crescenti
                     oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
                     oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
                 } else if (type === 'select') {
-                    // Suono di click/selezione
+                    // SUONO CLICK: Nota singola acuta
                     oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
                 }
 
+                // VOLUME E DURATA: Suono breve e non invasivo
                 gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
 
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.2);
             } catch (error) {
-                // Ignora errori audio
+                // GESTIONE ERRORI: Ignora se audio non supportato
                 console.log('Audio non supportato');
             }
         }
 
-        // Inizializza quando la pagina è caricata
+        // ============================================================================
+        // INIZIALIZZAZIONE AUTOMATICA: Avvia app quando DOM è pronto
+        // ============================================================================
         window.addEventListener('DOMContentLoaded', initPage);
     </script>
 
     <style>
-        /* Stili per gli indicatori di connessione */
+        /* ============================================================================
+           STILI INDICATORI CONNESSIONE: Feedback visivo per stato online/offline
+           ============================================================================ */
         .connection-indicator {
             margin-left: 8px;
             font-size: 0.8rem;
         }
 
+        /* ANIMAZIONE ONLINE: Pulsazione verde per giocatori connessi */
         .connection-indicator.online {
             animation: pulse-green 2s infinite;
         }
 
+        /* ANIMAZIONE OFFLINE: Pulsazione rossa per giocatori disconnessi */
         .connection-indicator.offline {
             animation: pulse-red 1s infinite;
         }
@@ -1055,17 +1147,22 @@
             100% { opacity: 1; }
         }
 
+        /* STILE GIOCATORI DISCONNESSI: Aspetto opaco con bordo rosso */
         .player-ready-status.disconnected {
             opacity: 0.7;
             border-left: 4px solid #dc143c;
             background: linear-gradient(90deg, rgba(220, 20, 60, 0.1) 0%, transparent 100%);
         }
 
+        /* ============================================================================
+           EFFETTI INTERATTIVI: Animazioni hover per migliorare UX
+           ============================================================================ */
         .player-card {
             position: relative;
             transition: all 0.3s ease;
         }
 
+        /* HOVER CARD: Solleva leggermente la card al passaggio del mouse */
         .player-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);

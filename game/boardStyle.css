@@ -2204,3 +2204,501 @@ button:hover::before {
         font-size: 9px !important;
     }
 }
+
+/* ==========================================
+   STILI SISTEMA BANDIERE COMPLETO
+   ========================================== */
+
+/* ==========================================
+   BANDIERE - Stati e Animazioni
+   ========================================== */
+
+/* Bandiera disponibile (non catturata) */
+.flag-cell.flag-available {
+    background: 
+        linear-gradient(145deg, rgba(220, 20, 60, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%) !important;
+    border: 3px solid #8b0000 !important;
+    box-shadow: 
+        0 0 15px rgba(220, 20, 60, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    animation: flagWave 3s ease-in-out infinite;
+}
+
+.flag-cell.flag-available::after {
+    content: "🏁";
+    font-size: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+    animation: flagIconWave 3s ease-in-out infinite;
+}
+
+/* Bandiera catturata */
+.flag-cell.flag-captured {
+    background: 
+        linear-gradient(145deg, rgba(105, 105, 105, 0.8) 0%, rgba(128, 128, 128, 0.7) 100%) !important;
+    border: 3px solid #696969 !important;
+    box-shadow: 
+        0 0 10px rgba(105, 105, 105, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    animation: flagCaptured 2s ease-in-out infinite;
+    opacity: 0.7;
+}
+
+.flag-cell.flag-captured::after {
+    content: "🏁";
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: grayscale(70%) drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+    opacity: 0.8;
+}
+
+.flag-cell.flag-captured::before {
+    content: "CATTURATA";
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(105, 105, 105, 0.9);
+    color: #f5deb3;
+    font-size: 8px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    z-index: 10;
+    border: 1px solid #696969;
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================
+   ANIMAZIONI BANDIERE
+   ========================================== */
+
+@keyframes flagWave {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 0 15px rgba(220, 20, 60, 0.6),
+            inset 0 2px 4px rgba(255, 255, 255, 0.2);
+    }
+    25% { 
+        transform: scale(1.02);
+        box-shadow: 
+            0 0 18px rgba(220, 20, 60, 0.7),
+            inset 0 2px 4px rgba(255, 255, 255, 0.25);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 
+            0 0 25px rgba(220, 20, 60, 0.8),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    }
+    75% { 
+        transform: scale(1.02);
+        box-shadow: 
+            0 0 18px rgba(220, 20, 60, 0.7),
+            inset 0 2px 4px rgba(255, 255, 255, 0.25);
+    }
+}
+
+@keyframes flagIconWave {
+    0%, 100% { 
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+    }
+    25% { 
+        transform: translate(-50%, -50%) rotate(2deg) scale(1.05);
+    }
+    50% { 
+        transform: translate(-50%, -50%) rotate(0deg) scale(1.1);
+    }
+    75% { 
+        transform: translate(-50%, -50%) rotate(-2deg) scale(1.05);
+    }
+}
+
+@keyframes flagCaptured {
+    0%, 100% { 
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.5;
+        transform: scale(0.98);
+    }
+}
+
+/* ==========================================
+   STATUS BANDIERE NELL'INTERFACCIA
+   ========================================== */
+
+.flag-status {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 15px !important;
+    background: 
+        linear-gradient(145deg, rgba(139, 69, 19, 0.3) 0%, rgba(101, 67, 33, 0.2) 100%) !important;
+    border-radius: 8px !important;
+    border: 2px solid rgba(101, 67, 33, 0.4) !important;
+    margin-top: 12px !important;
+    font-size: 0.95rem !important;
+    font-family: 'Georgia', serif !important;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1) !important;
+}
+
+.flag-status .flag-north,
+.flag-status .flag-south {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.flag-status .flag-north.available,
+.flag-status .flag-south.available {
+    color: #dc143c;
+    background: rgba(220, 20, 60, 0.2);
+    border-color: rgba(220, 20, 60, 0.3);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.flag-status .flag-north.captured,
+.flag-status .flag-south.captured {
+    color: #696969;
+    background: rgba(105, 105, 105, 0.2);
+    border-color: rgba(105, 105, 105, 0.3);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+    opacity: 0.8;
+}
+
+/* ==========================================
+   NOTIFICHE BANDIERE
+   ========================================== */
+
+/* Animazione cattura bandiera */
+@keyframes flagCaptureNotif {
+    0% {
+        transform: translate(-50%, -50%) scale(0.3) rotateY(-90deg);
+        opacity: 0;
+    }
+    20% {
+        transform: translate(-50%, -50%) scale(1.2) rotateY(0deg);
+        opacity: 1;
+    }
+    80% {
+        transform: translate(-50%, -50%) scale(1) rotateY(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0.8) rotateY(90deg);
+        opacity: 0;
+    }
+}
+
+/* Animazione perdita bandiera */
+@keyframes flagLossNotif {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0;
+        filter: blur(5px);
+    }
+    15% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1;
+        filter: blur(0px);
+    }
+    85% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        filter: blur(0px);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0.7);
+        opacity: 0;
+        filter: blur(3px);
+    }
+}
+
+/* ==========================================
+   EFFETTI VITTORIA BANDIERA
+   ========================================== */
+
+/* Coriandoli animati */
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Schermata vittoria speciale per bandiera */
+#victory-screen.flag-victory {
+    background: 
+        linear-gradient(145deg, rgba(0, 0, 0, 0.9) 0%, rgba(61, 36, 20, 0.8) 50%, rgba(34, 139, 34, 0.7) 100%);
+}
+
+#victory-screen.flag-victory::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 215, 0, 0.8), transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255, 20, 147, 0.6), transparent),
+        radial-gradient(1px 1px at 90px 40px, rgba(50, 205, 50, 0.7), transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(30, 144, 255, 0.6), transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: sparkle 4s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes sparkle {
+    0% { 
+        transform: translateY(0px) translateX(0px); 
+        opacity: 1;
+    }
+    50% { 
+        transform: translateY(-10px) translateX(10px); 
+        opacity: 0.7;
+    }
+    100% { 
+        transform: translateY(-20px) translateX(20px); 
+        opacity: 0.3;
+    }
+}
+
+/* ==========================================
+   GIOCATORE CON BANDIERA - STILI MIGLIORATI
+   ========================================== */
+
+/* Giocatore con bandiera (effetto più vistoso) */
+.player-with-flag {
+    box-shadow: 
+        0 0 0 5px #dc143c,
+        0 0 25px rgba(220, 20, 60, 0.8),
+        0 0 50px rgba(220, 20, 60, 0.4);
+    z-index: 3;
+    animation: flagBearer 1.5s infinite;
+    position: relative;
+}
+
+.player-with-flag::before {
+    content: "🏁";
+    position: absolute;
+    top: -12px;
+    right: -8px;
+    font-size: 16px;
+    z-index: 15;
+    animation: flagWaving 2s ease-in-out infinite;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+    background: rgba(220, 20, 60, 0.8);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+}
+
+@keyframes flagBearer {
+    0%, 100% { 
+        box-shadow: 
+            0 0 0 5px #dc143c,
+            0 0 25px rgba(220, 20, 60, 0.8),
+            0 0 50px rgba(220, 20, 60, 0.4);
+        filter: brightness(1);
+    }
+    25% { 
+        box-shadow: 
+            0 0 0 6px #ff1493,
+            0 0 30px rgba(255, 20, 147, 0.9),
+            0 0 60px rgba(255, 20, 147, 0.5);
+        filter: brightness(1.1);
+    }
+    50% { 
+        box-shadow: 
+            0 0 0 7px #ff0000,
+            0 0 35px rgba(255, 0, 0, 1),
+            0 0 70px rgba(255, 0, 0, 0.6);
+        filter: brightness(1.2);
+    }
+    75% { 
+        box-shadow: 
+            0 0 0 6px #ff1493,
+            0 0 30px rgba(255, 20, 147, 0.9),
+            0 0 60px rgba(255, 20, 147, 0.5);
+        filter: brightness(1.1);
+    }
+}
+
+@keyframes flagWaving {
+    0%, 100% { 
+        transform: rotate(0deg) scale(1);
+    }
+    25% { 
+        transform: rotate(10deg) scale(1.1);
+    }
+    50% { 
+        transform: rotate(0deg) scale(1.15);
+    }
+    75% { 
+        transform: rotate(-10deg) scale(1.1);
+    }
+}
+
+/* ==========================================
+   RESPONSIVITÀ BANDIERE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .flag-cell::after {
+        font-size: 18px;
+    }
+    
+    .flag-cell.flag-captured::before {
+        font-size: 7px;
+        padding: 1px 3px;
+    }
+    
+    .flag-status {
+        flex-direction: column !important;
+        gap: 8px !important;
+        text-align: center !important;
+    }
+    
+    .flag-status .flag-north,
+    .flag-status .flag-south {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .player-with-flag::before {
+        font-size: 14px;
+        width: 20px;
+        height: 20px;
+        top: -10px;
+        right: -6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .flag-cell::after {
+        font-size: 16px;
+    }
+    
+    .flag-cell.flag-captured::before {
+        font-size: 6px;
+        padding: 1px 2px;
+        top: -6px;
+    }
+    
+    .flag-status {
+        font-size: 0.85rem !important;
+        padding: 10px 12px !important;
+    }
+    
+    .player-with-flag::before {
+        font-size: 12px;
+        width: 18px;
+        height: 18px;
+        top: -8px;
+        right: -4px;
+    }
+}
+
+/* ==========================================
+   INDICATORI SPECIALI
+   ========================================== */
+
+/* Indicatore "Porta la bandiera alla base" */
+.flag-delivery-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(145deg, rgba(34, 139, 34, 0.95) 0%, rgba(0, 100, 0, 0.9) 100%);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 3px solid #228b22;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+    z-index: 500;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+    animation: deliveryHint 2s ease-in-out infinite;
+    font-family: 'Georgia', serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@keyframes deliveryHint {
+    0%, 100% { 
+        transform: translateX(-50%) scale(1);
+        box-shadow: 
+            0 8px 16px rgba(0, 0, 0, 0.6),
+            0 0 20px rgba(34, 139, 34, 0.4);
+    }
+    50% { 
+        transform: translateX(-50%) scale(1.05);
+        box-shadow: 
+            0 10px 20px rgba(0, 0, 0, 0.6),
+            0 0 30px rgba(34, 139, 34, 0.6);
+    }
+}
+
+/* Freccia indicatrice verso la base */
+.base-direction-arrow {
+    position: absolute;
+    font-size: 24px;
+    color: #32cd32;
+    animation: arrowBounce 1.5s ease-in-out infinite;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+    z-index: 20;
+}
+
+.base-direction-arrow.north {
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.base-direction-arrow.south {
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+@keyframes arrowBounce {
+    0%, 100% { 
+        transform: translateX(-50%) translateY(0px);
+        opacity: 1;
+    }
+    50% { 
+        transform: translateX(-50%) translateY(-8px);
+        opacity: 0.7;
+    }
+}

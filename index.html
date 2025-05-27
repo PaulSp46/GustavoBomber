@@ -10,47 +10,52 @@
     <div class="container">
         <h1>Gustavo Bombing</h1>
         
-        <!-- Insegna del Saloon -->
+        <!-- HEADER DECORATIVO: Insegna del Saloon -->
         <div class="saloon-sign">
             <div class="saloon-banner">🍺 SALOON 🍺</div>
         </div>
         
-        <!-- Schermata Lobby -->
+        <!-- SCHERMATA PRINCIPALE: Lobby per entrare/creare stanze -->
         <div id="lobby-screen">
+            <!-- Indicatore stato connessione Firebase -->
             <div id="status" class="status loading">
                 🔄 Inizializzando connessione...
             </div>
             
             <div style="text-align: center; margin: 20px 0;">
-                <!-- Campo Nome Utente -->
+                <!-- SEZIONE USERNAME: Input e validazione nome giocatore -->
                 <div style="margin-bottom: 20px;">
                     <input type="text" id="username" class="room-input" placeholder="Il tuo nome" maxlength="20" 
                            style="width: 250px; margin-right: 0; margin-bottom: 10px;">
+                    <!-- Feedback in tempo reale sulla validità del nome -->
                     <div id="username-status" style="font-size: 0.9em; margin-top: 5px; height: 20px;"></div>
                 </div>
                 
-                <!-- Codice Stanza -->
+                <!-- SEZIONE STANZA: Input codice e pulsante per entrare -->
                 <div style="margin-bottom: 15px;">
                     <input type="text" id="room-code" class="room-input" placeholder="Codice stanza" maxlength="10">
                     <button onclick="joinRoom()" id="join-btn" disabled>Entra in Stanza</button>
                 </div>
                 
                 <p>oppure</p>
+                <!-- ALTERNATIVA: Creazione nuova stanza -->
                 <button onclick="createRoom()" id="create-btn" style="font-size: 1.2em; padding: 15px 30px;" disabled>
                     Crea Nuova Stanza
                 </button>
             </div>
         </div>
 
-        <!-- Schermata Attesa -->
+        <!-- SCHERMATA ATTESA: Mostrata dopo aver entrato in una stanza -->
         <div id="waiting-screen" style="display:none;">
             <h2>Stanza: <span id="current-room-code" style="color: #007bff;"></span></h2>
             
+            <!-- LISTA GIOCATORI: Mostra tutti i giocatori connessi -->
             <div class="players-list">
                 <h3>Giocatori Connessi (  <span id="player-count">0</span>  /4):</h3>
                 <div id="players-list"></div>
             </div>
             
+            <!-- CONTROLLI STANZA: Avvia gioco o esci -->
             <div style="text-align: center;">
                 <button id="start-game-btn" onclick="startGame()" disabled>🎮 Inizia Gioco</button>
                 <button onclick="leaveRoom()" class="exit-btn">🚪 Esci</button>
@@ -59,10 +64,13 @@
     </div>
 
     <script type="module">
+        // ========== IMPORTAZIONI FIREBASE ==========
+        // Importa le funzioni necessarie da Firebase v9+ (sintassi modulare)
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
         import { getDatabase, ref, set, onValue, update, onDisconnect, serverTimestamp, get } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
 
-        // Configurazione Firebase
+        // ========== CONFIGURAZIONE FIREBASE ==========
+        // Configurazione del progetto Firebase - contiene le chiavi API e URL del database
         const firebaseConfig = {
             apiKey: "AIzaSyAaFw4nAcPcFrrZACMcLoVc-0rPybpwyYU",
             authDomain: "maprace-68ba8.firebaseapp.com",
@@ -73,32 +81,41 @@
             appId: "1:554782611402:web:d70f20cfe3d2cff640e133"
         };
 
+        // ========== RIFERIMENTI DOM ==========
+        // Ottiene i riferimenti agli elementi HTML per manipolarli via JavaScript
         const statusEl = document.getElementById('status');
         const usernameEl = document.getElementById('username');
         const usernameStatusEl = document.getElementById('username-status');
         const joinBtn = document.getElementById('join-btn');
         const createBtn = document.getElementById('create-btn');
         
-        let app, database;
-        let currentRoom = null;
-        let myPlayerId = null;
-        let myUsername = '';
+        // ========== VARIABILI GLOBALI ==========
+        // Variabili per mantenere lo stato dell'applicazione
+        let app, database;          // Istanze Firebase
+        let currentRoom = null;     // Codice della stanza corrente
+        let myPlayerId = null;      // ID univoco del giocatore
+        let myUsername = '';        // Nome del giocatore validato
 
+        // ========== FUNZIONE DI LOGGING ==========
+        // Utility per logging con timestamp e categorizzazione
         function log(message, type = 'info') {
             const colors = { error: 'red', success: 'green', warning: 'orange' };
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] ${message}`);
         }
 
-        // ========== GESTIONE NOME UTENTE ==========
+        // ========== VALIDAZIONE NOME UTENTE ==========
+        // Funzione per validare e sanitizzare il nome utente inserito
         function validateUsername(username) {
-            // Rimuovi spazi e caratteri speciali (trattino spostato alla fine)
+            // Rimuovi spazi e caratteri speciali, mantieni solo lettere, numeri, accenti, trattini e underscore
             username = username.trim().replace(/[^a-zA-Z0-9À-ÿ-_]/g, '');
             
+            // Controlla lunghezza minima
             if (username.length < 2) {
                 return { valid: false, error: 'Nome troppo corto (min 2 caratteri)' };
             }
             
+            // Controlla lunghezza massima
             if (username.length > 20) {
                 return { valid: false, error: 'Nome troppo lungo (max 20 caratteri)' };
             }
@@ -106,12 +123,16 @@
             return { valid: true, username: username };
         }
 
+        // ========== FEEDBACK VISIVO NOME UTENTE ==========
+        // Aggiorna il messaggio di stato sotto il campo username
         function updateUsernameStatus(message, type = 'info') {
             const colors = { error: '#ff4444', success: '#44ff44', warning: '#ffaa44', info: '#4488ff' };
             usernameStatusEl.textContent = message;
             usernameStatusEl.style.color = colors[type] || '#666';
         }
 
+        // ========== CONTROLLO ABILITAZIONE PULSANTI ==========
+        // Abilita/disabilita i pulsanti in base alla validità del nome utente
         function checkButtonsEnabled() {
             const hasValidUsername = myUsername && myUsername.length >= 2;
             joinBtn.disabled = !hasValidUsername;
@@ -122,11 +143,13 @@
             }
         }
 
-        // Event listener per il campo username
+        // ========== EVENT LISTENER USERNAME ==========
+        // Gestisce la validazione in tempo reale mentre l'utente digita
         usernameEl.addEventListener('input', function() {
             const rawUsername = this.value;
             const validation = validateUsername(rawUsername);
             
+            // Se il nome non è valido, mostra errore e disabilita pulsanti
             if (!validation.valid) {
                 updateUsernameStatus(validation.error, 'error');
                 myUsername = '';
@@ -134,6 +157,7 @@
                 return;
             }
             
+            // Nome valido: aggiorna variabile globale e campo input
             myUsername = validation.username;
             this.value = myUsername; // Aggiorna il campo con il nome "pulito"
             
@@ -141,23 +165,27 @@
             checkButtonsEnabled();
         });
 
-        // Numero di player in una stanza
+        // ========== CONTEGGIO GIOCATORI IN STANZA ==========
+        // Funzione asincrona per verificare quanti giocatori sono in una stanza
         async function getPlayerCount(roomCode) {
             try {
+                // Legge i dati dei giocatori dalla stanza specificata
                 const response = await get(ref(database, `games/${roomCode}/players`));
                 
                 if (response.exists()) {
                     const players = response.val();
-                    return Object.keys(players).length;
+                    return Object.keys(players).length; // Conta le chiavi (ID giocatori)
                 } else {
                     return 0; // Stanza vuota o non esistente
                 }
             } catch (error) {
                 log(`Errore conteggio giocatori: ${error}`, "error");
-                return -1; // Errore
+                return -1; // Errore di rete/database
             }
         }
 
+        // ========== CONTROLLO DISPONIBILITÀ NOME ==========
+        // Verifica se un nome utente è già in uso in una specifica stanza
         async function isUsernameAvailable(roomCode, username) {
             if (!database || !roomCode || !username) return false;
             
@@ -166,7 +194,7 @@
                 const snapshot = await get(playersRef);
                 const players = snapshot.val() || {};
                 
-                // Controlla se il nome è già usato (case-insensitive)
+                // Controlla se il nome è già usato (confronto case-insensitive)
                 const existingNames = Object.values(players).map(p => p.name?.toLowerCase());
                 return !existingNames.includes(username.toLowerCase());
             } catch (error) {
@@ -175,16 +203,20 @@
             }
         }
 
-        // ========== FIREBASE INIT ==========
+        // ========== INIZIALIZZAZIONE FIREBASE ==========
+        // Funzione asincrona per inizializzare la connessione a Firebase
         async function initFirebase() {
             try {
                 log('🔧 Inizializzando Firebase...');
+                // Inizializza l'app Firebase con la configurazione
                 app = initializeApp(firebaseConfig);
                 
+                // Ottiene l'istanza del database Realtime
                 database = getDatabase(app);
                 
                 log('✅ Firebase inizializzato con Long Polling', 'success');
                 
+                // Aggiorna l'indicatore di stato nell'interfaccia
                 if (statusEl) {
                     statusEl.textContent = '✅ Connesso';
                     statusEl.className = 'status success';
@@ -194,6 +226,7 @@
             } catch (error) {
                 log(`❌ Errore inizializzazione: ${error.message}`, 'error');
                 
+                // Mostra errore nell'interfaccia
                 if (statusEl) {
                     statusEl.textContent = '❌ Errore Connessione';
                     statusEl.className = 'status error';
@@ -202,8 +235,10 @@
             }
         }
 
-        // ========== FUNZIONI LOBBY ==========
+        // ========== CREAZIONE NUOVA STANZA ==========
+        // Funzione globale per creare una nuova stanza di gioco
         window.createRoom = async function() {
+            // Verifica che il nome utente sia valido
             if (!myUsername) {
                 alert('Inserisci un nome utente valido');
                 usernameEl.focus();
@@ -211,35 +246,42 @@
             }
             
             log('🎯 Creando nuova stanza...');
+            // Genera codice stanza casuale (6 caratteri alfanumerici maiuscoli)
             const roomCode = Math.random().toString(36).substr(2, 6).toUpperCase();
             log(`🆔 Codice generato: ${roomCode}`);
             
-            // Non serve controllare il nome per una stanza nuova
+            // Entra nella stanza appena creata (isNewRoom=true per saltare controllo nome)
             await joinRoom(roomCode, true);
         }
 
+        // ========== INGRESSO IN STANZA ==========
+        // Funzione globale per entrare in una stanza esistente o appena creata
         window.joinRoom = async function(roomCode, isNewRoom = false) {
+            // Se non viene passato codice, lo prende dall'input
             if (!roomCode) {
                 roomCode = document.getElementById('room-code').value.trim().toUpperCase();
             }
             
+            // Validazione codice stanza
             if (!roomCode || roomCode.length < 3) {
                 alert('Inserisci un codice stanza valido (almeno 3 caratteri)');
                 return;
             }
 
+            // Verifica nome utente
             if (!myUsername) {
                 alert('Inserisci un nome utente valido');
                 usernameEl.focus();
                 return;
             }
 
+            // Verifica connessione Firebase
             if (!database) {
                 alert('Connessione Firebase non pronta. Riprova tra un momento.');
                 return;
             }
 
-            // Controlla disponibilità nome (solo per stanze esistenti)
+            // CONTROLLO DISPONIBILITÀ NOME (solo per stanze esistenti)
             if (!isNewRoom) {
                 updateUsernameStatus('Controllo disponibilità nome...', 'info');
                 const isAvailable = await isUsernameAvailable(roomCode, myUsername);
@@ -253,40 +295,44 @@
                 }
             }
 
+            // INIZIALIZZAZIONE VARIABILI GIOCATORE
             currentRoom = roomCode;
-            myPlayerId = 'player_' + Math.random().toString(36).substr(2, 8);
+            myPlayerId = 'player_' + Math.random().toString(36).substr(2, 8); // ID univoco
 
             log(`🚪 Tentativo ingresso stanza: ${roomCode}`);
             log(`👤 Nome giocatore: ${myUsername}`);
             log(`🆔 ID giocatore: ${myPlayerId}`);   
 
+            // CONTROLLO CAPACITÀ STANZA (massimo 4 giocatori)
             if (await getPlayerCount(roomCode) < 4){
                 try {
-                    // Registra giocatore con nome scelto
+                    // REGISTRAZIONE GIOCATORE NEL DATABASE
                     const playerRef = ref(database, `games/${roomCode}/players/${myPlayerId}`);
                     await set(playerRef, {
                         id: myPlayerId,
                         name: myUsername,
-                        joinedAt: Date.now(),
+                        joinedAt: Date.now(),     // Timestamp ingresso
                         ready: true,
-                        isHost: isNewRoom, // Primo giocatore è host
-                        team: null,       // Team sarà scelto nella preparazione
-                        role: null        // Ruolo sarà scelto nella preparazione
+                        isHost: isNewRoom,        // Primo giocatore di nuova stanza è host
+                        team: null,               // Team sarà scelto nella preparazione
+                        role: null                // Ruolo sarà scelto nella preparazione
                     });
 
                     log('✅ Giocatore registrato con successo', 'success');
 
-                    // Cleanup alla disconnessione
+                    // CLEANUP AUTOMATICO alla disconnessione
+                    // Rimuove automaticamente il giocatore se si disconnette
                     onDisconnect(playerRef).remove();
 
-                    // Ascolta aggiornamenti stanza
+                    // LISTENER AGGIORNAMENTI STANZA
+                    // Ascolta cambiamenti in tempo reale nella stanza
                     const roomRef = ref(database, `games/${roomCode}`);
                     onValue(roomRef, (snapshot) => {
                         const data = snapshot.val();
                         if (data) {
-                            updateRoom(data);
+                            updateRoom(data); // Aggiorna interfaccia
                             
-                            // Se il gioco è stato avviato, vai alla preparazione
+                            // REDIRECT AUTOMATICO quando il gioco inizia
                             if (data.gameStarted && data.gamePhase === 'preparation') {
                                 log('🎮 Gioco avviato, andando alla preparazione...', 'success');
                                 window.location.href = `preparation/preparation.php?roomCode=${roomCode}&playerId=${myPlayerId}&username=${myUsername}`;
@@ -298,7 +344,7 @@
                         log(`❌ Errore listener stanza: ${error.message}`, 'error');
                     });
 
-                    // Mostra schermata attesa
+                    // CAMBIO INTERFACCIA: da lobby a schermata attesa
                     const lobbyScreen = document.getElementById('lobby-screen');
                     const waitingScreen = document.getElementById('waiting-screen');
                     const roomCodeEl = document.getElementById('current-room-code');
@@ -314,30 +360,32 @@
                     alert(`Errore entrando nella stanza: ${error.message}`);
                 }
             } else{
-                alert("Stanza piena")
+                alert("Stanza piena"); // Più di 4 giocatori
             }
-            
         }
 
+        // ========== AGGIORNAMENTO INTERFACCIA STANZA ==========
+        // Aggiorna la lista giocatori e i controlli quando cambia lo stato della stanza
         function updateRoom(data) {
             const players = data.players || {};
             const playerCount = Object.keys(players).length;
             
             log(`📊 Aggiornamento stanza: ${playerCount} giocatori connessi`);
             
-            // Aggiorna contatore
+            // AGGIORNA CONTATORE GIOCATORI
             const playerCountEl = document.getElementById('player-count');
             if (playerCountEl) {
                 playerCountEl.textContent = playerCount;
             }
             
-            // Lista giocatori
+            // GENERA LISTA GIOCATORI DINAMICA
             const listEl = document.getElementById('players-list');
             if (listEl) {
-                listEl.innerHTML = '';
+                listEl.innerHTML = ''; // Pulisce lista esistente
                 
+                // Ordina giocatori per tempo di ingresso (primo arrivato = host)
                 Object.values(players)
-                    .sort((a, b) => a.joinedAt - b.joinedAt) // Ordina per tempo di ingresso
+                    .sort((a, b) => a.joinedAt - b.joinedAt)
                     .forEach((player, index) => {
                         const div = document.createElement('div');
                         div.className = 'player-item';
@@ -345,10 +393,12 @@
                         const isMe = player.id === myPlayerId;
                         const isHost = player.isHost || index === 0; // Primo giocatore è sempre host
                         
+                        // Evidenzia il giocatore corrente
                         if (isMe) {
                             div.classList.add('current-player');
                         }
                         
+                        // TEMPLATE HTML per ogni giocatore
                         div.innerHTML = `
                             <strong>${player.name}</strong>
                             ${isHost ? '<span style="color: #ffa500; margin-left: 8px;">👑 HOST</span>' : ''}
@@ -362,7 +412,8 @@
                     });
             }
 
-            // Abilita/disabilita pulsante start (solo per host)
+            // CONTROLLO PULSANTE AVVIO GIOCO
+            // Solo l'host può avviare e servono almeno 2 giocatori
             const startBtn = document.getElementById('start-game-btn');
             const myPlayer = Object.values(players).find(p => p.id === myPlayerId);
             const canStart = myPlayer && (myPlayer.isHost || Object.keys(players)[0] === myPlayerId);
@@ -373,38 +424,46 @@
             }
         }
 
+        // ========== USCITA DALLA STANZA ==========
+        // Funzione globale per lasciare la stanza corrente
         window.leaveRoom = function() {
             if (currentRoom && myPlayerId && database) {
+                // Rimuove il giocatore dal database
                 const playerRef = ref(database, `games/${currentRoom}/players/${myPlayerId}`);
                 set(playerRef, null);
             }
+            // Ricarica la pagina per tornare alla lobby
             location.reload();
         }
 
-        // MODIFICA PRINCIPALE: Ora vai alla preparazione invece che direttamente al gioco
+        // ========== AVVIO GIOCO ==========
+        // Funzione globale per iniziare la fase di preparazione (solo host)
         window.startGame = function() {
             if (!currentRoom || !database) return;
             
             try {
+                // AGGIORNA STATO STANZA nel database
                 update(ref(database, `games/${currentRoom}`), {
                     gameStarted: true,
                     startedAt: Date.now(),
                     startedBy: myPlayerId,
-                    gamePhase: 'preparation'  // Fase di preparazione invece di 'role-selection'
+                    gamePhase: 'preparation'  // Inizia con fase preparazione (non role-selection)
                 });
                 
                 log('🎮 Avviando fase di preparazione...', 'success');
-                // Redirect alla pagina di preparazione
+                
+                // REDIRECT alla pagina di preparazione con parametri URL
                 window.location.href = `preparation/preparation.php?roomCode=${currentRoom}&playerId=${myPlayerId}&username=${myUsername}`;
             } catch (error) {
                 log(`❌ Errore avviando preparazione: ${error.message}`, 'error');
             }
         }
 
-        // ========== INIT ==========
+        // ========== INIZIALIZZAZIONE APPLICAZIONE ==========
+        // Avvia Firebase all'avvio della pagina
         initFirebase();
         
-        // Focus sul campo username all'avvio
+        // FOCUS AUTOMATICO sul campo username dopo 1 secondo
         setTimeout(() => {
             if (usernameEl) {
                 usernameEl.focus();
